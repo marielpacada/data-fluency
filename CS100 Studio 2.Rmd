@@ -1,0 +1,61 @@
+---
+title: "CS100 Studio 2"
+author: "Mariel Pacada"
+date: "9/19/2019"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+library(dplyr)
+library(ggplot2)
+library(mosaic)
+library(manipulate)
+responses <- read.table("http://cs.brown.edu/courses/cs100/studios/data/2/responses.csv",                         sep = ";", header = TRUE)
+```
+
+# Hypothesis 1
+
+```{r hypo1}
+friends_vs_happiness <- responses %>% 
+                          select(Number.of.friends, Happiness.in.life) %>%
+                          filter(!is.na(Happiness.in.life)) %>%
+                          arrange(desc(Number.of.friends))
+```
+
+```{r}
+ggplot(data = friends_vs_happiness, aes(x = Number.of.friends, y = Happiness.in.life)) + 
+       geom_jitter()  + labs(title = "")
+```
+
+```{r}
+ggplot(data = friends_vs_happiness, aes(x = Number.of.friends, y = Happiness.in.life)) + 
+       geom_jitter()  + aes(colour = Number.of.friends) + 
+       theme(legend.position = "right") + labs(title = "")
+```
+
+```{r}
+responses %>% 
+  group_by(Number.of.friends) %>%
+  summarize(Avg.happiness.in.life = mean(Happiness.in.life, na.rm = TRUE))
+```
+### EXPLAIN ANSWER HERE
+
+# Hypothesis 2
+
+```{r responses}
+gender_vs_happiness <- responses %>%
+                         group_by(Gender) %>%
+                         filter(!is.na(Happiness.in.life)) %>%
+                         summarize(Avg.happiness.in.life = mean(Happiness.in.life))
+```
+
+```{r}
+ggplot(data = gender_vs_happiness, aes(x = Gender, y = Avg.happiness.in.life)) + geom_boxplot()  + labs(title = "")
+```
+### EXPLAIN HERE
+
+# Hypothesis 3
+
+```{r}
+
+
