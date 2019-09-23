@@ -13,49 +13,126 @@ library(manipulate)
 responses <- read.table("http://cs.brown.edu/courses/cs100/studios/data/2/responses.csv",                         sep = ";", header = TRUE)
 ```
 
-# Hypothesis 1
+# Hypothesis 1: Number of friends vs. Happiness
 
 ```{r hypo1}
 friends_vs_happiness <- responses %>% 
                           select(Number.of.friends, Happiness.in.life) %>%
+                          filter(Number.of.friends != "") %>%
                           filter(!is.na(Happiness.in.life)) %>%
                           arrange(desc(Number.of.friends))
 ```
 
-```{r}
+```{r initial plot}
 ggplot(data = friends_vs_happiness, aes(x = Number.of.friends, y = Happiness.in.life)) + 
        geom_jitter()  + labs(title = "")
 ```
 
-```{r}
+```{r final plot}
 ggplot(data = friends_vs_happiness, aes(x = Number.of.friends, y = Happiness.in.life)) + 
        geom_jitter()  + aes(colour = Number.of.friends) + 
        theme(legend.position = "right") + labs(title = "")
 ```
 
-```{r}
+```{r table}
 responses %>% 
   group_by(Number.of.friends) %>%
   summarize(Avg.happiness.in.life = mean(Happiness.in.life, na.rm = TRUE))
 ```
-### EXPLAIN ANSWER HERE
+From the table above, we can determine that there exists a considerable positive relationship between number of friends and average happiness in life. While the increments leading up to 5 friends may seem inconsequential, note that we are dealing with a 1-5 scale for happiness. This means that the difference between the average happiness for 1 friend and that of 5 friends -- which is about 1 point -- is a substantial difference. 
 
-# Hypothesis 2
+# Hypothesis 2: Gender vs. Happiness
 
-```{r responses}
+```{r hypo2}
 gender_vs_happiness <- responses %>%
+                         filter(Gender != "") %>%
                          group_by(Gender) %>%
                          filter(!is.na(Happiness.in.life)) %>%
                          summarize(Avg.happiness.in.life = mean(Happiness.in.life))
 ```
 
-```{r}
-ggplot(data = gender_vs_happiness, aes(x = Gender, y = Avg.happiness.in.life)) + geom_boxplot()  + labs(title = "")
+```{r plot}
+ggplot(data = gender_vs_happiness, aes(x = Gender, y = Avg.happiness.in.life)) + geom_boxplot()  + 
+  labs(title = "") + ylab("Average Happiness in Life")
 ```
-### EXPLAIN HERE
+ ```{r subset}
+ p <- (subset(responses, Gender == "female"))$Happiness.in.life
+ q <- (subset(responses, Gender == "male"))$Happiness.in.life
+ ```
+ 
+ ```{r stdev}
+ sd(p, na.rm = TRUE)
+ sd(q, na.rm = TRUE)
+```
 
-# Hypothesis 3
+The boxplot above shows that male responders reported a higher average happiness. However, this difference cannot be considered significant. The standard deviation for both female and male happiness in life exceeds the difference between their averages, so we cannot definitively conclude which gender was happier in 2013 Slovakia. 
 
-```{r}
+# Hypothesis 3: Age vs. Happiness
 
+```{r hypo3}
+happiness_vs_age <- responses %>%
+                      group_by(Age) %>%
+                      filter(!is.na(Happiness.in.life)) %>%
+                      filter(!is.na(Age)) %>%
+                      summarize(Avg.happiness.in.life = mean(Happiness.in.life, na.rm = TRUE))
+```
 
+```{r scatterplot}
+ggplot(data = happiness_vs_age, aes(x = Age, y = Avg.happiness.in.life)) + geom_point()  + labs(title = "")
+```
+
+From this scatterplot, we can visually determine that there exists a slight positive correlation between age and happiness. 
+
+# Hypothesis 4: Only child vs. Fear of public speaking 
+
+```{r hypo4}
+siblings_vs_speaking <- responses %>%
+                          filter(Only.child != "") %>%
+                          select(Only.child, Fear.of.public.speaking) %>%
+                          group_by(Only.child) %>%
+                          summarize(Avg.fear.of.public.speaking = mean(Fear.of.public.speaking, na.rm = TRUE))
+```
+
+```{r boxplot}
+ggplot(data = siblings_vs_speaking, aes(x = Only.child, y = Avg.fear.of.public.speaking)) + geom_boxplot()  + 
+  xlab("Have Siblings") + ylab("Fear of Public Speaking")
+```
+
+In my experience, having siblings helped me develop my public speaking skills because it allowed me to express my thoughts and outline my arguments clearly. However, there does not seem to be a correlation between being an only child and one's fear of public speaking in this particular data set. 
+
+# Hypothesis 5: Level of education vs. Political participation
+
+```{r hypo5}
+education_vs_politics <- responses %>%
+                           select(Education, Politics) %>%
+                           filter(Education != "") %>%
+                           group_by(Education) %>%
+                           summarize(Avg.politics = mean(Politics, na.rm = TRUE)) %>%
+                           arrange(Avg.politics)
+
+education_vs_politics
+```
+
+For this hypothesis, we test if there exists a correlation between highest level of education completed and participation in politics. The table above shows a slight positive correlation between the two variables, as each level of increase in education corresponds with a slight increase in average politics. 
+
+# Hypothesis 6: Religious participation vs. Belief in a god
+
+```{r hypo6}
+religion_vs_god <- responses %>%
+                     select(Religion, God) %>%
+                     filter(!is.na(Religion), !is.na(God)) %>%
+                     arrange(Religion)
+```
+
+```{r rels scatter}
+ggplot(data = religion_vs_god, aes(x = Religion, y = God)) + geom_jitter()  + aes(colour = Religion) + 
+  theme(legend.position = "right") + labs(title = "")
+```
+
+```{r rels table}
+religion_vs_god %>%
+  group_by(Religion) %>%
+  summarize(Avg.God = mean(God))
+```
+
+Because belief in a god and participation in religion often go hand in hand, we discern whether these two variables actually have a correlation close to +1. From the scatterplot alone, it seems that respondents reported a higher belief in a god than they did for their rating on actually participating in religion. 
