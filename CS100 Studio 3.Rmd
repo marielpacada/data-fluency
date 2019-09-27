@@ -1,0 +1,24 @@
+---
+title: "CS100 Studio 3"
+author: "Mariel Pacada"
+date: "9/27/2019"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+library(dplyr)
+library(ggplot2)
+library(GGally)
+
+movie_scores <- read.csv("http://cs.brown.edu/courses/cs100/studios/data/3/Fandango_wide.csv")
+```
+
+```{r stars}
+hist(movie_scores$Fandango_Stars)
+ggplot(movie_scores, aes(x = Fandango_Stars)) + geom_histogram(binwidth = 0.5) +
+  labs(title = "Movie Ratings on Fandango", x = "Rating (out of 5.0 stars)", y = "Number of Movies")
+```
+
+```{r value}
+ggplot(movie_scores, aes(x = Fandango_Difference)) + geom_histogram()
+```
