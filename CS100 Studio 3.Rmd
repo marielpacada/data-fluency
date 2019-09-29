@@ -20,5 +20,9 @@ ggplot(movie_scores, aes(x = Fandango_Stars)) + geom_histogram(binwidth = 0.5) +
 ```
 
 ```{r value}
-ggplot(movie_scores, aes(x = Fandango_Difference)) + geom_histogram()
+ggplot(movie_scores, aes(x = Fandango_Difference)) + geom_histogram(binwidth = 0.1)
+```
+
+```{r layer}
+
 ```

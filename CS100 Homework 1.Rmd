@@ -1,0 +1,65 @@
+---
+title: "CS100 Homework 1"
+author: "Mariel Pacada"
+date: "9/28/2019"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+library(readODS)
+library(dplyr)
+library(ggplot2)
+Hillary <- read_ods("~/csci0100/babyNames.ods", sheet = 1)
+Barack <- read_ods("~/csci0100/babyNames.ods", sheet = 2)
+```
+
+```{r rename}
+colnames(Hillary)[colnames(Hillary) == "Male Count"] <- "Male_Count"
+colnames(Hillary)[colnames(Hillary) == "Female Count"] <- "Female_Count"
+colnames(Barack)[colnames(Barack) == "Male Count"] <- "Male_Count"
+colnames(Barack)[colnames(Barack) == "Female Count"] <- "Female_Count"
+```
+
+```{r q1.1}
+Hillary$Year[Hillary$Male_Count == max(Hillary$Male_Count)]
+Hillary$Male_Count[Hillary$Male_Count == max(Hillary$Male_Count)]
+```
+
+```{r q1.2}
+hillary_1900s <- Hillary %>%
+                   filter(Year >= 1900 & Year < 2000)
+    
+sum(hillary_1900s$Male_Count)
+sum(hillary_1900s$Female_Count)
+```
+
+```{r q1.3}
+ggplot(Hillary, aes(x = Year, y = Female_Count)) + geom_line() + 
+  labs(title = "Female Babies Named Hillary from 1882 to 2014", x = "Year", y = "Count")
+```
+
+```{r q1.4} 
+ggplot(Hillary, aes(x = Year, y = Male_Count)) + geom_line() + 
+  labs(title = "Male Babies Named Hillary from 1882 to 2014", x = "Year", y = "Count")
+```
+
+```{r q1.5}
+Total_Count <- Hillary$Male_Count + Hillary$Female_Count
+hillary_total <- Hillary %>%
+                   cbind(Total_Count)
+                   
+hillary_total$Total_Count[hillary_total$Year == 1963]
+hillary_total$Total_Count[hillary_total$Year == 1975]
+hillary_total$Total_Count[hillary_total$Year == 1992]
+hillary_total$Total_Count[hillary_total$Year == 2002]
+
+```
+
+```{r q2.1}
+barack_male <- Barack %>%
+                 select(Year, Male_Count) %>%
+                 arrange(desc(Male_Count))
+
+head(barack_male$Year, 1)
+tail(barack_male$Year, 1)
+```
