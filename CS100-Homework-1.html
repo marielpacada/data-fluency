@@ -399,22 +399,23 @@ sum(hillary_1900s$Male_Count)</code></pre>
 hillary_total &lt;- Hillary %&gt;%
                    cbind(Total_Count)
                    
-hillary_total$Total_Count[hillary_total$Year == 1963] #total babies in 1963</code></pre>
+hillary_total$Total_Count[hillary_total$Year == 1963] #total Hillary babies in 1963</code></pre>
 <pre><code>## [1] 440</code></pre>
-<pre class="r"><code>hillary_total$Total_Count[hillary_total$Year == 1975] #total babies in 1975</code></pre>
+<pre class="r"><code>hillary_total$Total_Count[hillary_total$Year == 1975] #total Hillary babies in 1975</code></pre>
 <pre><code>## [1] 794</code></pre>
-<pre class="r"><code>hillary_total$Total_Count[hillary_total$Year == 1992] #total babies in 1992</code></pre>
+<pre class="r"><code>hillary_total$Total_Count[hillary_total$Year == 1992] #total Hillary babies in 1992</code></pre>
 <pre><code>## [1] 3705</code></pre>
-<pre class="r"><code>hillary_total$Total_Count[hillary_total$Year == 2002] #total babies in 2002 </code></pre>
+<pre class="r"><code>hillary_total$Total_Count[hillary_total$Year == 2002] #total Hillary babies in 2002 </code></pre>
 <pre><code>## [1] 298</code></pre>
 <pre class="r"><code>barack_male &lt;- Barack %&gt;%
                  select(Year, Male_Count) %&gt;%
                  arrange(desc(Male_Count))
 
-head(barack_male$Year, 1)</code></pre>
+head(barack_male$Year, 1) #year when the most American babies named Barack</code></pre>
 <pre><code>## [1] 2009</code></pre>
-<pre class="r"><code>tail(barack_male$Year, 1)</code></pre>
+<pre class="r"><code>tail(barack_male$Year, 1) #year when the fewest American babies named Barack</code></pre>
 <pre><code>## [1] 2007</code></pre>
+<p>“Barack” is a fairly uncommon American name. It was popularized by former President Barack Obama, and his years of his rise to fame in the global political stage coincides with the years in the dataset.</p>
 
 
 

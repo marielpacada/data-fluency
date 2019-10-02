@@ -2,7 +2,9 @@
 title: "CS100 Homework 1"
 author: "Mariel Pacada"
 date: "9/28/2019"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include = FALSE}

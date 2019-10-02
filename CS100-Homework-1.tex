@@ -1,0 +1,296 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={CS100 Homework 1},
+            pdfauthor={Mariel Pacada},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\providecommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{CS100 Homework 1}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{Mariel Pacada}
+    \preauthor{\centering\large\emph}
+  \postauthor{\par}
+      \predate{\centering\large\emph}
+  \postdate{\par}
+    \date{9/28/2019}
+
+
+\begin{document}
+\maketitle
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{colnames}\NormalTok{(Hillary)[}\KeywordTok{colnames}\NormalTok{(Hillary) }\OperatorTok{==}\StringTok{ "Male Count"}\NormalTok{] <-}\StringTok{ "Male_Count"}
+\KeywordTok{colnames}\NormalTok{(Hillary)[}\KeywordTok{colnames}\NormalTok{(Hillary) }\OperatorTok{==}\StringTok{ "Female Count"}\NormalTok{] <-}\StringTok{ "Female_Count"}
+\KeywordTok{colnames}\NormalTok{(Barack)[}\KeywordTok{colnames}\NormalTok{(Barack) }\OperatorTok{==}\StringTok{ "Male Count"}\NormalTok{] <-}\StringTok{ "Male_Count"}
+\KeywordTok{colnames}\NormalTok{(Barack)[}\KeywordTok{colnames}\NormalTok{(Barack) }\OperatorTok{==}\StringTok{ "Female Count"}\NormalTok{] <-}\StringTok{ "Female_Count"}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Hillary}\OperatorTok{$}\NormalTok{Year[Hillary}\OperatorTok{$}\NormalTok{Male_Count }\OperatorTok{==}\StringTok{ }\KeywordTok{max}\NormalTok{(Hillary}\OperatorTok{$}\NormalTok{Male_Count)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1923
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Hillary}\OperatorTok{$}\NormalTok{Male_Count[Hillary}\OperatorTok{$}\NormalTok{Male_Count }\OperatorTok{==}\StringTok{ }\KeywordTok{max}\NormalTok{(Hillary}\OperatorTok{$}\NormalTok{Male_Count)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 70
+\end{verbatim}
+
+``Hillary'' was most common as a male name in 1923, when 70 babies were
+named such.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{hillary_1900s <-}\StringTok{ }\NormalTok{Hillary }\OperatorTok{%>%}
+\StringTok{                   }\KeywordTok{filter}\NormalTok{(Year }\OperatorTok{>=}\StringTok{ }\DecValTok{1900} \OperatorTok{&}\StringTok{ }\NormalTok{Year }\OperatorTok{<}\StringTok{ }\DecValTok{2000}\NormalTok{)}
+    
+\KeywordTok{sum}\NormalTok{(hillary_1900s}\OperatorTok{$}\NormalTok{Male_Count)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 3361
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{sum}\NormalTok{(hillary_1900s}\OperatorTok{$}\NormalTok{Female_Count)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 46757
+\end{verbatim}
+
+In the 19th century, the name ``Hillary'' was given to 3,361 male babies
+and 46,757 female babies.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(Hillary, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ Year, }\DataTypeTok{y =}\NormalTok{ Female_Count)) }\OperatorTok{+}\StringTok{ }\KeywordTok{geom_line}\NormalTok{() }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title =} \StringTok{"Female Babies Named Hillary from 1882 to 2014"}\NormalTok{, }\DataTypeTok{x =} \StringTok{"Year"}\NormalTok{, }\DataTypeTok{y =} \StringTok{"Count"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{CS100-Homework-1_files/figure-latex/q1.3-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Hillary}\OperatorTok{$}\NormalTok{Year[Hillary}\OperatorTok{$}\NormalTok{Female_Count }\OperatorTok{==}\StringTok{ }\KeywordTok{max}\NormalTok{(Hillary}\OperatorTok{$}\NormalTok{Female_Count)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1992
+\end{verbatim}
+
+The sharp spike in the early 1990s, with its peak occuring in 1992. Bill
+Clinton's presidential campaign during this year may have contributed to
+this sudden increase in assigning the name.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(Hillary, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ Year, }\DataTypeTok{y =}\NormalTok{ Male_Count)) }\OperatorTok{+}\StringTok{ }\KeywordTok{geom_line}\NormalTok{() }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title =} \StringTok{"Male Babies Named Hillary from 1882 to 2014"}\NormalTok{, }\DataTypeTok{x =} \StringTok{"Year"}\NormalTok{, }\DataTypeTok{y =} \StringTok{"Count"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{CS100-Homework-1_files/figure-latex/q1.4-1.pdf} The
+spike in this graph happened during the early 1920s, with the peak at
+1923.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Total_Count <-}\StringTok{ }\NormalTok{Hillary}\OperatorTok{$}\NormalTok{Male_Count }\OperatorTok{+}\StringTok{ }\NormalTok{Hillary}\OperatorTok{$}\NormalTok{Female_Count}
+\NormalTok{hillary_total <-}\StringTok{ }\NormalTok{Hillary }\OperatorTok{%>%}
+\StringTok{                   }\KeywordTok{cbind}\NormalTok{(Total_Count)}
+                   
+\NormalTok{hillary_total}\OperatorTok{$}\NormalTok{Total_Count[hillary_total}\OperatorTok{$}\NormalTok{Year }\OperatorTok{==}\StringTok{ }\DecValTok{1963}\NormalTok{] }\CommentTok{#total Hillary babies in 1963}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 440
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{hillary_total}\OperatorTok{$}\NormalTok{Total_Count[hillary_total}\OperatorTok{$}\NormalTok{Year }\OperatorTok{==}\StringTok{ }\DecValTok{1975}\NormalTok{] }\CommentTok{#total Hillary babies in 1975}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 794
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{hillary_total}\OperatorTok{$}\NormalTok{Total_Count[hillary_total}\OperatorTok{$}\NormalTok{Year }\OperatorTok{==}\StringTok{ }\DecValTok{1992}\NormalTok{] }\CommentTok{#total Hillary babies in 1992}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 3705
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{hillary_total}\OperatorTok{$}\NormalTok{Total_Count[hillary_total}\OperatorTok{$}\NormalTok{Year }\OperatorTok{==}\StringTok{ }\DecValTok{2002}\NormalTok{] }\CommentTok{#total Hillary babies in 2002 }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 298
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{barack_male <-}\StringTok{ }\NormalTok{Barack }\OperatorTok{%>%}
+\StringTok{                 }\KeywordTok{select}\NormalTok{(Year, Male_Count) }\OperatorTok{%>%}
+\StringTok{                 }\KeywordTok{arrange}\NormalTok{(}\KeywordTok{desc}\NormalTok{(Male_Count))}
+
+\KeywordTok{head}\NormalTok{(barack_male}\OperatorTok{$}\NormalTok{Year, }\DecValTok{1}\NormalTok{) }\CommentTok{#year when the most American babies named Barack}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 2009
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{tail}\NormalTok{(barack_male}\OperatorTok{$}\NormalTok{Year, }\DecValTok{1}\NormalTok{) }\CommentTok{#year when the fewest American babies named Barack}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 2007
+\end{verbatim}
+
+``Barack'' is a fairly uncommon American name. It was popularized by
+former President Barack Obama, and his years of his rise to fame in the
+global political stage coincides with the years in the dataset.
+
+
+\end{document}
