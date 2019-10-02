@@ -24,6 +24,7 @@ colnames(Barack)[colnames(Barack) == "Female Count"] <- "Female_Count"
 Hillary$Year[Hillary$Male_Count == max(Hillary$Male_Count)]
 Hillary$Male_Count[Hillary$Male_Count == max(Hillary$Male_Count)]
 ```
+"Hillary" was most common as a male name in 1923, when 70 babies were named such.
 
 ```{r q1.2}
 hillary_1900s <- Hillary %>%
@@ -32,34 +33,41 @@ hillary_1900s <- Hillary %>%
 sum(hillary_1900s$Male_Count)
 sum(hillary_1900s$Female_Count)
 ```
+In the 19th century, the name "Hillary" was given to 3,361 male babies and 46,757 female babies.
 
 ```{r q1.3}
 ggplot(Hillary, aes(x = Year, y = Female_Count)) + geom_line() + 
   labs(title = "Female Babies Named Hillary from 1882 to 2014", x = "Year", y = "Count")
+
+Hillary$Year[Hillary$Female_Count == max(Hillary$Female_Count)]
 ```
+The sharp spike in the early 1990s, with its peak occuring in 1992. Bill Clinton's presidential campaign during this year may have contributed to this sudden increase in assigning the name.
 
 ```{r q1.4} 
 ggplot(Hillary, aes(x = Year, y = Male_Count)) + geom_line() + 
   labs(title = "Male Babies Named Hillary from 1882 to 2014", x = "Year", y = "Count")
 ```
+The spike in this graph happened during the early 1920s, with the peak at 1923.
 
 ```{r q1.5}
 Total_Count <- Hillary$Male_Count + Hillary$Female_Count
 hillary_total <- Hillary %>%
                    cbind(Total_Count)
                    
-hillary_total$Total_Count[hillary_total$Year == 1963]
-hillary_total$Total_Count[hillary_total$Year == 1975]
-hillary_total$Total_Count[hillary_total$Year == 1992]
-hillary_total$Total_Count[hillary_total$Year == 2002]
+hillary_total$Total_Count[hillary_total$Year == 1963] #total Hillary babies in 1963
+hillary_total$Total_Count[hillary_total$Year == 1975] #total Hillary babies in 1975
+hillary_total$Total_Count[hillary_total$Year == 1992] #total Hillary babies in 1992
+hillary_total$Total_Count[hillary_total$Year == 2002] #total Hillary babies in 2002 
 
 ```
 
-```{r q2.1}
+```{r q2.1, 2.2}
 barack_male <- Barack %>%
                  select(Year, Male_Count) %>%
                  arrange(desc(Male_Count))
 
-head(barack_male$Year, 1)
-tail(barack_male$Year, 1)
+head(barack_male$Year, 1) #year when the most American babies named Barack
+tail(barack_male$Year, 1) #year when the fewest American babies named Barack
 ```
+
+"Barack" is a fairly uncommon American name. It was popularized by former President Barack Obama, and his years of his rise to fame in the global political stage coincides with the years in the dataset.
