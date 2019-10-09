@@ -1,0 +1,100 @@
+---
+title: "CS100 Studio 4"
+author: "Mariel Pacada"
+date: "10/8/2019"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+hdi <- read.csv("http://cs.brown.edu/courses/cs100/lectures/scripts/section1/2014hdi.csv")
+gini <- read.csv("http://cs.brown.edu/courses/cs100/lectures/scripts/section1/2014gini.csv")
+worlddev <- read.csv("http://cs.brown.edu/courses/cs100/lectures/scripts/section1/2014worlddev.csv")
+continents <- read.csv("http://cs.brown.edu/courses/cs100/lectures/scripts/section1/continents.csv")
+library(dplyr)
+```
+
+```{r merging}
+hdi_and_gini <- merge(hdi, gini, by = "Country")
+continents_and_worlddev <- merge(continents, worlddev, by.x = "name", by.y = "Country.Name")
+merged_data <- merge(hdi_and_gini, continents_and_worlddev, by.x = "Country", by.y = "name")
+
+names(merged_data)[names(merged_data) == "Gross.national.income..GNI..per.capita"] <- "GNI.per.cap" #replaces name of GNI per cap column
+merged_data$GNI.per.cap <- as.numeric(gsub(",", "", merged_data$GNI.per.cap)) #original gni per cap was char vector with factors, this line turns it into numeric vector
+merged_data$Country <- as.character(merged_data$Country) #turns factor vector into char vector
+```
+
+```{r setup2, include = FALSE}
+clean_data <- read.csv("http://cs.brown.edu/courses/cs100/studios/data/4/merged_data.csv")
+```
+
+```{r sd}
+sd(clean_data$life_expectancy) #manual was 9.09
+```
+
+```{r sd_manual}
+sq_values <- c()
+for (i in clean_data$expected_yrs_schooling) {
+  t <- (i - mean(clean_data$expected_yrs_schooling)) ** 2
+  sq_values <- c(sq_values, t)
+}
+mean(sq_values) ** .5 #for loop calculation
+sd(clean_data$expected_yrs_schooling) #built-in function calculation
+```
+
+```{r covariance}
+cov(clean_data$life_expectancy, clean_data$GNI)
+```
+
+```{r correlation}
+cor(clean_data$life_expectancy, clean_data$GNI)
+cor(clean_data$GNI, clean_data$internet_users)
+cor(clean_data$GNI, clean_data$fertility_rate)
+```
+The strong postiive correlation between life expectancy and gross national income would make sense because one would typically expect a richer country to be a healthier one. This logic also follows with having more internet users -- the richer the country, the more people have access to the internet. The negative correlation between gross national income and fertility rate, however, is more surprising. It seems one would expect a richer country to birth more children, but the opposite is true. 
+
+```{r gni_rankings}
+ranked_gni <- merged_data %>%
+                select(Country, GNI.per.cap) %>% 
+                arrange(desc(GNI.per.cap))
+
+ranked_gni[30,]
+ranked_gni[60,]
+ranked_gni[90,]
+
+ranked_gni[1,] #max gni
+ranked_gni[120,] #min gni
+```
+
+```{r Life_exp_rankings}
+ranked_life_exp <- merged_data %>%
+                     select(Country, Life.expectancy.at.birth) %>% 
+                     arrange(desc(Life.expectancy.at.birth))
+
+ranked_life_exp[30,]
+ranked_life_exp[60,]
+ranked_life_exp[90,]
+
+ranked_life_exp[1,] #max gni
+ranked_life_exp[120,] #min gni
+```
+
+```{r quantile}
+quantile(ranked_gni$GNI.per.cap, probs = seq(0, 1, 0.25))
+```
+
+The values are slightly off. In our previous calculation, we extracted the the subvector that corresponded with the quantile based on the total number of countries. However, the quantile() function evaluates the quantiles based on the values in the GNI.per.cap vector. 
+
+```{r outliers}
+outlier_check_over <- (22981.25 - 3690.5) * 1.5 + 11190
+outlier_check_under <- (22981.25 - 3690.5) * 1.5 - 11190
+
+outliers <- c()
+for (i in ranked_gni$GNI.per.cap) { #iterate over each gni value
+  if (i > outlier_check_over | i < outlier_check_under) { 
+    t <- ranked_gni$Country[ranked_gni$GNI.per.cap == i]
+    outliers <- c(outliers, t)
+  }
+}
+
+outliers
+```
