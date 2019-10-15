@@ -9,7 +9,9 @@ output: html_document
 
 ```{r setup, include = FALSE}
 swineflu <- read.csv("https://cs.brown.edu/courses/cs100/studios/data/5/swineflu_mod.csv")
+colnames(swineflu)[colnames(swineflu) == "Vaccination.rates.per.1000"] <- "Vaccine.pmp"
 library(dplyr)
+library(ggplot2)
 ```
 
 ```{r clean_cases}
@@ -58,7 +60,7 @@ saveRDS(swineflu, file = filename_rds)
 
 ### Preliminary Analysis
 
-```{r top_ten_cases}
+```{r cases}
 top_ten_cases <- swineflu %>%
                    select(Country, Cases) %>%
                    arrange(desc(Cases))
@@ -67,7 +69,60 @@ head(top_ten_cases, 10)
 ```
 Above are the first ten countries that had the most cases of the swine flu. The US was below only to China.
 
-```{r top_ten_infection}
+```{r infect}
+top_ten_infect <- swineflu %>%
+                    select(Country, Infection.rate.pmp) %>%
+                    arrange(desc(Infection.rate.pmp))
 
+head(top_ten_infect, 10)
+```
+
+```{r death}
+top_ten_death <- swineflu %>%
+                   select(Country, Deaths.pmp) %>%
+                   arrange(desc(Deaths.pmp))
+
+head(top_ten_death, 10)
+```
+
+```{r vaccine}
+top_ten_vaccine <- swineflu %>%
+                     select(Country, Vaccine.pmp) %>%
+                     arrange(desc(Vaccine.pmp))
+
+head(top_ten_vaccine, 10)
+```
+The United States was the most vaccinated country, and, in turn, it was not in the top ten for either highest death rates or highest infection rates. 
+
+```{r cor_case_death}
+ggplot(swineflu, aes(x = Cases, y = Deaths)) + geom_point()
+cor(swineflu$Cases, swineflu$Deaths)
+```
+
+```{r cor_infect_death}
+ggplot(swineflu, aes(x = Infection.rate.pmp, y = Deaths.pmp)) + geom_point()
+cor(swineflu$Infection.rate.pmp, swineflu$Deaths.pmp)
+```
+Intuitively, number of deaths and number of cases are highly correlated -- the higher the recorded number of cases, the higher such of deaths. However, we find that the infection rate and death rate are not at all strongly correlated. 
+
+```{r cor_vac_infect}
+qplot(swineflu$Vaccine.pmp, swineflu$Infection.rate.pmp)
+cor(swineflu$Vaccine.pmp, swineflu$Infection.rate.pmp)
+```
+One would expect that the more people get vaccinated in a country, the less people get infected. However, this plot and the correlation coefficient show that these two variables are not strongly correlated. This means that a country's vaccination rate cannot predict its infection rate. 
+
+```{r infect_outliers}
+swineflu$Country[which(swineflu$Vaccine.pmp > 250)]
+swineflu[swineflu$Country == "Australia",]
+
+swineflu <- subset(swineflu, swineflu$Country != "Australia")
+qplot(swineflu$Vaccine.pmp, swineflu$Infection.rate.pmp)
+cor(swineflu$Vaccine.pmp, swineflu$Infection.rate.pmp)
+```
+The correlation is even closer to 0 than with the outlier. 
+
+```{r death_outliers}
+qplot(swineflu$Vaccine.pmp, swineflu$Deaths.pmp)
+cor(swineflu$Vaccine.pmp, swineflu$Deaths.pmp)
 
 ```
