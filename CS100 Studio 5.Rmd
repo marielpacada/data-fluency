@@ -5,9 +5,9 @@ date: "10/14/2019"
 output: html_document
 ---
 
-### Data Cleaning
+### Swine Flu Data Cleaning
 
-```{r setup, include = FALSE}
+```{r swine_setup, include = FALSE}
 swineflu <- read.csv("https://cs.brown.edu/courses/cs100/studios/data/5/swineflu_mod.csv")
 colnames(swineflu)[colnames(swineflu) == "Vaccination.rates.per.1000"] <- "Vaccine.pmp"
 library(dplyr)
@@ -125,4 +125,16 @@ The correlation is even closer to 0 than with the outlier.
 qplot(swineflu$Vaccine.pmp, swineflu$Deaths.pmp)
 cor(swineflu$Vaccine.pmp, swineflu$Deaths.pmp)
 
+swineflu$Country[which(swineflu$Vaccine.pmp > 400)]
+swineflu <- subset(swineflu, swineflu$Country != "Korea (Republic of)")
+swineflu <- subset(swineflu, swineflu$Country != "United States of America")
+
+cor(swineflu$Vaccine.pmp, swineflu$Deaths.pmp)
+```
+The correlation is closer to what one would expect. 
+
+### HDI Data Cleaning
+
+```{r hdi_setup}
+hdi <- read.csv("https://cs.brown.edu/courses/cs100/lectures/scripts/section1/2014hdi.csv")
 ```
