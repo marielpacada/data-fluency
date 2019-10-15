@@ -19,7 +19,7 @@ continents_and_worlddev <- merge(continents, worlddev, by.x = "name", by.y = "Co
 merged_data <- merge(hdi_and_gini, continents_and_worlddev, by.x = "Country", by.y = "name")
 
 names(merged_data)[names(merged_data) == "Gross.national.income..GNI..per.capita"] <- "GNI.per.cap" #replaces name of GNI per cap column
-merged_data$GNI.per.cap <- as.numeric(gsub(",", "", merged_data$GNI.per.cap)) #original gni per cap was char vector with factors, this line turns it into numeric vector
+merged_data$GNI.per.cap <- as.numeric(merged_data$GNI.per.cap) #original gni per cap was char vector with factors, this line turns it into numeric vector
 merged_data$Country <- as.character(merged_data$Country) #turns factor vector into char vector
 ```
 
@@ -85,8 +85,8 @@ quantile(ranked_gni$GNI.per.cap, probs = seq(0, 1, 0.25))
 The values are slightly off. In our previous calculation, we extracted the the subvector that corresponded with the quantile based on the total number of countries. However, the quantile() function evaluates the quantiles based on the values in the GNI.per.cap vector. 
 
 ```{r outliers}
-outlier_check_over <- (22981.25 - 3690.5) * 1.5 + 11190
-outlier_check_under <- (22981.25 - 3690.5) * 1.5 - 11190
+outlier_check_over <- (136.25 - 47.5) * 1.5 + 92
+outlier_check_under <- (136.25 - 47.5) * 1.5 - 92
 
 outliers <- c()
 for (i in ranked_gni$GNI.per.cap) { #iterate over each gni value

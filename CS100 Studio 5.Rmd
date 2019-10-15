@@ -1,0 +1,73 @@
+---
+title: "CS100 Studio 5"
+author: "Mariel Pacada"
+date: "10/14/2019"
+output: html_document
+---
+
+### Data Cleaning
+
+```{r setup, include = FALSE}
+swineflu <- read.csv("https://cs.brown.edu/courses/cs100/studios/data/5/swineflu_mod.csv")
+library(dplyr)
+```
+
+```{r clean_cases}
+levels(swineflu$Cases)
+levels(swineflu$Cases)[levels(swineflu$Cases) == "four"] <- "4"
+levels(swineflu$Cases)
+
+newCases <- as.numeric(as.character(swineflu$Cases))
+class(newCases)
+
+swineflu$Cases <- newCases
+
+range(swineflu$Cases)
+```
+
+```{r hist}
+hist(swineflu$Cases, xlab = "Confirmed Cases", main = "Distribution of Cases")
+```
+
+```{r fix_range}
+filter(swineflu, swineflu$Cases < 0)
+swineflu$Cases[which(swineflu$Cases < 0)] <- 20
+```
+
+```{r new_hist}
+hist(swineflu$Cases, xlab = "Confirmed Cases", main = "Distribution of Cases")
+```
+
+```{r fix_country}
+swineflu$Country <- as.character(swineflu$Country)
+```
+
+```{r fix_na}
+swineflu <- na.omit(swineflu)
+```
+
+```{r save_file}
+filename_csv <- paste("cleanSwineflu", Sys.Date(), ".csv", sep = "")
+write.csv(swineflu, file = filename_csv)
+
+filename_rds <- paste("cleanSwineflu", Sys.Date(), ".rds", sep = "")
+saveRDS(swineflu, file = filename_rds)
+```
+
+&nbsp;
+
+### Preliminary Analysis
+
+```{r top_ten_cases}
+top_ten_cases <- swineflu %>%
+                   select(Country, Cases) %>%
+                   arrange(desc(Cases))
+
+head(top_ten_cases, 10)
+```
+Above are the first ten countries that had the most cases of the swine flu. The US was below only to China.
+
+```{r top_ten_infection}
+
+
+```
