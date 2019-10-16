@@ -135,6 +135,59 @@ The correlation is closer to what one would expect.
 
 ### HDI Data Cleaning
 
-```{r hdi_setup}
-hdi <- read.csv("https://cs.brown.edu/courses/cs100/lectures/scripts/section1/2014hdi.csv")
+```{r merge_setup, include = FALSE}
+swineflu <- read.csv("https://cs.brown.edu/courses/cs100/studios/data/5/swineflu_mod.csv",
+                     stringsAsFactors = FALSE)
+hdi <- read.csv("https://cs.brown.edu/courses/cs100/lectures/scripts/section1/2014hdi.csv",
+                stringsAsFactors = FALSE)
+continents <- read.csv("http://cs.brown.edu/courses/cs100/lectures/scripts/section1/continents.csv", stringsAsFactors = FALSE)
+```
+
+```{r clean_hdg}
+hdg <- as.factor(hdi$Human.Development.Group)
+
+table(hdi$Human.Development.Group)
+table(hdg)
+
+hdi$Human.Development.Group <- hdg
+```
+
+```{r combine}
+combined <- merge(swineflu, hdi, by = "Country")
+swineflu[which(!(swineflu$Country %in% hdi$Country)), ]$Country
+```
+
+```{r fix_country}
+swineflu$Country[which(swineflu$Country == "United States of America")] <- "United States"
+swineflu$Country[which(swineflu$Country == "Bosnia and Herzegovinia")] <- "Bosnia and Herzegovina"
+swineflu$Country[which(swineflu$Country == "Canada ")] <- "Canada"
+swineflu$Country[which(swineflu$Country == "Uruguay ")] <- "Uruguay"
+swineflu$Country[which(swineflu$Country == "Bolivia")] <- "Bolivia (Plurinational State of)"
+swineflu$Country[which(swineflu$Country == "Iran")] <- "Iran (Islamic Republic of)"
+swineflu$Country[which(swineflu$Country == "Laos")] <- "Lao People's Democratic Republic"
+swineflu$Country[which(swineflu$Country == "Venezuela")] <- "Venezuela (Bolivarian Republic of)"
+swineflu$Country[which(swineflu$Country == "Vietnam")] <- "Viet Nam"
+
+swineflu[which(!(swineflu$Country %in% hdi$Country)), ]$Country
+```
+
+```{r clean_combine}
+clean_combined <- merge(swineflu, hdi, by = "Country")
+```
+
+```{r combine_continents}
+colnames(continents)[colnames(continents) == "name"] <- "Country"
+
+continents$Country[which(continents$Country == "United States of America")] <- "United States"
+continents$Country[which(continents$Country == "United Kingdom of Great Britain and Northern Ireland")] <- "United Kingdom"
+
+continents_combined <- merge(continents, clean_combined, by = "Country")
+```
+
+### Further Analysis
+
+```{r}
+
+
+
 ```
