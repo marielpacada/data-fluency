@@ -1,0 +1,100 @@
+---
+title: "CS100 Studio 6" 
+author: "Mariel Pacada"
+date: "10/17/2019"
+output: html_document
+---
+
+### PART 1: Central Limit Theorem Simulation
+```{r variables}
+num_trials <- 100
+num_expts <- 10
+```
+
+```{r initial_clt}
+sample_data <- sample(0:1, num_trials, replace = TRUE)
+mean(sample_data)
+hist(sample_data, main = "Fair Coin")
+```
+```{r hist_loop}
+for (i in 1:num_expts) {
+  sample_data <- sample(0:1, num_trials, replace = TRUE)
+  mean(sample_data)
+  hist(sample_data)
+}
+```
+
+```{r function}
+fair_coin_flips <- function(num_expts, num_trials) {
+  for (i in 1:num_expts) {
+    sample_data <- sample(0:1, num_trials, replace = TRUE)
+    print(mean(sample_data))
+  }
+}
+```
+
+```{r sample_means}
+clt <- function(num_expts, num_trials) {
+  sample_means1 <- numeric(num_expts)
+  for (i in 1:num_expts) {
+    m <- mean(sample(0:1, num_trials, replace = TRUE))
+    sample_means1[i] <- m
+  }
+  hist(sample_means1) #vectors created in function aren't global
+}
+
+
+trials <- 100
+clt(10, trials)
+clt(100, trials)
+clt(1000, trials)
+clt(10000, trials)
+clt(100000, trials)
+```
+
+### PART 2 Law of Large Numbers Simulation
+```{r initial_lln}
+num_trials <- 1000
+fair_coin_flips <- sample(0:1, num_trials, replace = TRUE)
+mean(fair_coin_flips)
+```
+
+```{r fair_flips}
+sample_means2 <- numeric(num_trials)
+for (i in 1:num_trials) {
+  fair_coin_flips <- sample(0:1, i, replace = TRUE)
+  sample_means2[i] <- mean(fair_coin_flips)
+}
+hist(sample_means2)
+```
+
+```{r unfair_flips}
+sample_means3 <- numeric(num_trials)
+for (i in 1:num_trials) {
+  unfair_coin_flips <- sample(0:1, i, replace = TRUE, prob = c(0.2, 0.8))
+  sample_means3[i] <- mean(unfair_coin_flips)
+}
+hist(sample_means3)
+```
+
+```{r lln}
+loln <- function(p, num) {
+  sample_means4 <- numeric(num)
+  for (i in 1:num) {
+    coin_flips <- sample(0:1, i, replace = TRUE, prob = c(1-p, p))
+    sample_means4[i] <- mean(coin_flips)
+  }
+  hist(sample_means4, main = "Sample Means")
+}
+
+loln(0.3, 10)
+loln(0.3, 100)
+loln(0.3, 1000)
+
+loln(0.8, 10)
+loln(0.8, 100)
+loln(0.8, 1000)
+```
+&nbsp;
+
+As the sample size gets bigger, the more the data converges to a normal distribution around the mean. 

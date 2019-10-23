@@ -141,6 +141,7 @@ swineflu <- read.csv("https://cs.brown.edu/courses/cs100/studios/data/5/swineflu
 hdi <- read.csv("https://cs.brown.edu/courses/cs100/lectures/scripts/section1/2014hdi.csv",
                 stringsAsFactors = FALSE)
 continents <- read.csv("http://cs.brown.edu/courses/cs100/lectures/scripts/section1/continents.csv", stringsAsFactors = FALSE)
+colnames(swineflu)[colnames(swineflu) == "Vaccination.rates.per.1000"] <- "Vaccine.pmp"
 ```
 
 ```{r clean_hdg}
@@ -182,12 +183,61 @@ continents$Country[which(continents$Country == "United States of America")] <- "
 continents$Country[which(continents$Country == "United Kingdom of Great Britain and Northern Ireland")] <- "United Kingdom"
 
 continents_combined <- merge(continents, clean_combined, by = "Country")
+continents_combined <- na.omit(continents_combined)
 ```
 
 ### Further Analysis
 
-```{r}
+```{r boxplot}
+ggplot(continents_combined, aes(x = Human.Development.Group, y = Vaccine.pmp)) + geom_boxplot()
 
+continents_combined$Country[which(continents_combined$Vaccine.pmp > 400)]
+```
+The median for High and Medium countries are relatively the same, which is quite surprising. Only countries ranked Very High had outliers, and these were South Korea and the United States.
 
+```{r region_infect}
+ranked_infect <- continents_combined %>%
+                   select(region, Infection.rate.pmp) %>%
+                   group_by(region) %>%
+                   summarize(avg.infect = mean(Infection.rate.pmp)) %>%
+                   arrange(desc(avg.infect))
 
+ranked_infect
+```
+
+```{r region_death}
+ranked_death <- continents_combined %>%
+                  select(region, Deaths.pmp) %>%
+                  group_by(region) %>%
+                  summarize(avg.death = mean(Deaths.pmp)) %>%
+                  arrange(desc(avg.death))
+
+ranked_death
+```
+
+```{r region_hurdle}
+hurdle <- c()
+for (i in continents_combined$Vaccine.pmp) {
+  
+  if (i > 159) {
+    hurdle <- c(hurdle, "above")
+  } else {
+    hurdle <- c(hurdle, "below")
+  }
+  
+}
+
+continents_combined$vaccine_hurdle <- as.factor(hurdle)
+
+ranked_vac_death <- continents_combined %>%
+                      select(region, Deaths.pmp, vaccine_hurdle) %>%
+                      group_by(region, vaccine_hurdle) %>%
+                      summarize(avg.death = mean(Deaths.pmp)) %>%
+                      arrange(desc(avg.death))
+```
+
+```{r clean_missing}
+worlddev <- read.csv("http://cs.brown.edu/courses/cs100/lectures/scripts/section1/2014worlddev.csv", na.strings = "..", stringsAsFactors = FALSE)
+colnames(worlddev)[colnames(worlddev) == "Country.Name"] <- "Country"
+final_data <- merge(continents_combined, worlddev, by = "Country")
 ```
