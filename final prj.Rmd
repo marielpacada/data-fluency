@@ -1,0 +1,178 @@
+---
+title: "cs100-fp-SL-1130"
+author: "Silei Li and Mariel Pacada"
+date: "11/30/2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+```{r setup, include=FALSE}
+setwd("/Users/marielpacada/cs10-final-prj")
+survey <- read.csv("mental-health-in-tech.csv")
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(wordcloud)
+```
+
+##### Data cleaning
+
+```{r}
+survey[survey$no_employees=="6/25/2019" ] <- as.factor(6-25)
+survey[survey$no_employees=="1/5/2019" ] <- as.factor(1-5)
+```
+
+```{r}
+diffgender <- unique(survey$Gender)
+```
+
+```{r}
+#Male
+survey$Gender<-replace(survey$Gender,survey$Gender=="M","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="m","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="male","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Male ","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="maile","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Mail","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Man","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Mal","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Malr","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="msle","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Make","Male")
+#Female
+survey$Gender<-replace(survey$Gender,survey$Gender=="F","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="f","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="female","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Female ","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Femake","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Woman","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="woman","Female")
+#Cis
+#??partial match, do "fe" first for females, than "male" for males
+#Cis female
+survey$Gender<-replace(survey$Gender,survey$Gender=="Cis Female","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="cis-female/femme","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Female (cis)","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="femail","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="","Female")
+#Cis male
+survey$Gender<-replace(survey$Gender,survey$Gender=="Cis Male","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="cis male","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Cis Man","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Male (CIS)","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="","Male")
+#Trans
+```
+
+
+Clean age
+
+```{r}
+```
+
+Will said: maybe store the rest as NA or other... but we can also just skip them, just filter Gender = Female and Male, and note that on the visualizations.
+```{r}
+print(length(unique(survey$Gender)))
+diffgender <- unique(survey$Gender)
+diffgender
+```
+```{r}
+summary(survey)
+```
+
+
+
+### Stacked barplot
+
+```{r}
+survey%>%
+  mutate(no_employees = factor(no_employees, levels = c("1-5","6-25","26-100","100-500","500-1000","More than 1000")))%>%
+  ggplot(aes(fill=benefits,x=no_employees,y=1))+geom_bar(position="stack", stat="identity") +
+  labs(x="Company size (Number of employees)", y="number of people",title="Does your company provide mental health benefits?")
+```
+
+
+```{r}
+survey%>%
+  mutate(no_employees = factor(no_employees, levels = c("1-5","6-25","26-100","100-500","500-1000","More than 1000")))%>%
+  ggplot(aes(fill=benefits,x=no_employees,y=1))+geom_bar(position="fill", stat="identity") +
+  labs(x="Company size (Number of employees)", y="percentage of people",title="Does your company provide mental health benefits?")
+```
+
+Need to reorder tha bars
+aes(z, x, fill=factor(y, levels=c("blue","white" )))) + 
+  geom_bar(stat = "identity")
+```{r}
+survey%>%
+  mutate(no_employees = factor(no_employees, levels = c("1-5","6-25","26-100","100-500","500-1000","More than 1000")))%>%
+  ggplot(aes(fill=factor(leave, levels=c("Don't know", "Very difficult", "Somewhat difficult", "Somewhat easy","Very easy")),x=no_employees,y=1))+geom_bar(position="fill", stat="identity") +
+  labs(x="Company size (Number of employees)", y="percentage of people",title="How difficult is it to take a leave for mental Health reasons?")
+```
+
+
+Does self-employment affect how easy it is to take a leave?
+(Excluding "NA")
+Should we also exclude "Don't know"? maybe not?
+It seems that self-employed people face a similar level of difficulty to ask for a leave for mental health reasons - maybe because they are the boss they need to stay even more.
+```{r}
+survey%>%
+  filter(self_employed != "NA")%>%
+  ggplot(aes(fill=factor(leave, levels=c("Don't know", "Very difficult", "Somewhat difficult", "Somewhat easy","Very easy")),x=self_employed,y=1))+geom_bar(position="fill", stat="identity") +
+  labs(x="Self-employed?", y="percentage of people",title="Is it easier to take a leave if you are self-employed?")
+```
+
+##### decision tree predicting what factors make people want more benefit?
+
+
+##### (Take into account family history)
+There is some weak correlation between family history of mental health problem and whether the individual has seeked treatment. However this is not a significant relationship, so most of the difference can be attributed to the other factors.
+```{r}
+ggplot(survey, aes(x=family_history, y=treatment))+geom_point(position="jitter")
+```
+
+
+Word cloud of comments? It seems our comments need to be read in context, not just key words... not sure if it's a good idea to do a word cloud
+```{r}
+#comments <- survey$comments
+#comments %>% with(wordcloud(comments, n, max.words = 25))
+#comments %>% with(wordcloud(comments, n, max.words = 100, random.order = FALSE, colors = brewer.pal(8, "Dark2")))
+```
+
+Maybe we can make a US state map
+```{r}
+library(maps)
+library(usmap)
+#plot_usmap(regions = "state")
+#plot_usmap(regions = "state",label_color = "grey" )
+#plot_usmap(include = na.omit(survey$state))
+statebenefits <- survey %>% select(state, benefits) %>% na.omit()
+states <- unique (statebenefits$state)
+```
+
+```{r}
+benefitratio <- c()
+for (i in 1:length(states)){
+  totalstates <- nrow(statebenefits %>% filter(state==states[i]))
+  totalyes <- nrow(statebenefits %>% filter(state==states[i] & benefits =="Yes"))
+  newratio <- totalyes/totalstates
+  benefitratio <- append(benefitratio, newratio)
+}
+states <- data.frame(states)
+benefitratio <- data.frame(benefitratio)
+states <- cbind(states, benefitratio)
+states <- states %>% 
+  rename(state=states)
+```
+
+Benefit ratio: "Does your company provide mental health benefits?"
+```{r}
+plot_usmap(data = states, values = "benefitratio") + 
+  scale_fill_continuous(name = "benefit ratio", label = scales::comma, low="darkred", high="white") + 
+  theme(legend.position = "right") +
+  labs(title="'Does your company provide mental health benefits?' by states")
+```
+
+```{r}
+```

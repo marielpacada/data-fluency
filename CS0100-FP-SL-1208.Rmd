@@ -1,0 +1,827 @@
+---
+title: "CSCI 0100 Final Project"
+author: "Silei Li"
+date: "11/30/2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+### Dataset & Goals
+We found a dataset on Kaggle, which includes data from a 2014 survey that measures attitudes towards mental health and frequency of mental health disorders in the tech workplace.
+
+This project will explore the relationship between mental health and the conditions in a workplace within the tech industry, which is relevant to the course as quite a few fellow students are aiming for the tech industry. We will explore whether the presence of mental health care options in one’s company predicts the mental health of an employee. We will also explore geographical differences, asking whether the North America or Europe has better options and less social taboos on mental health and seeking the necessary help for it. 
+
+75% — We want to find which individual variables predict whether an employee has sought mental health treatment. With such, we will create clear visualizations that help explain the relationships between these variables. 
+
+100% — Along with the 75% deliverable, we want to note some differences in employee conditions, health care options, and social consequences in the different regions represented in the dataset. We will compare the different linear models and apply linear regression techniques to help visualize the relationships among the variables.                                                                                             
+125% — We want to be able to make interactive models and visualizations. Recently, we discovered that this can be done in R Markdown. This would definitely allow the viewer of the data analysis to learn more about the dataset. 
+
+### General Hypotheses
+
+##### **1.** Company size is related to employee's willingness to discuss a mental health issue. Bigger companies may have more competitive environments, people may be less likely to discuss their mental health situations and seek help. Smaller companieS may be more private and personal, where employees and employer or supervisors may know each other better and have more time to communicate.
+
+##### **2.** Bigger companies provide better mental health care benefits/resources
+
+##### **3.** Self-employment is a factor influcing a person's access to mental health care provided by the employer. Those who are self-employed might know the company-provided benefits better, and find it easier to discuss mental health issues with people they work with.
+
+##### **4.** We expect some geographical difference among mental health care benefits. Different countries/states have different legislations regarding how companies should handle employee's mental health conditions.
+
+
+### Methodologies
+We will use a number of methods to illustrate and analyze the questions we have.
+
+##### **Visualization**: Scatterplots & Stacked barplots (including pie charts)
+We have lots of categorical data that cannot be very well analyzed with continuous graphs.
+
+We are therefore using scatterplots to show the clustering patterns, and barplots to show data distribution.
+
+By observing the visualizations, we will select features to build classification models on, and examine if our hypotheses were valid.
+
+For Hypothesis 4 (geographical variation), we will make maps to demonstrate how mental health benefits vary depending on where a person is employed.
+
+
+##### **Classification**
+In order to test if larger companies provide better mental health care resources, we will use the mental health benefit features to prefict company sizes. Because most data is categorical, we will build Decision Trees and Naive Bayes models.
+
+```{r setup, include=FALSE, echo=FALSE}
+setwd("/Users/marielpacada/cs10-final-prj")
+survey <- read.csv("mental-health-in-tech.csv")
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(wordcloud)
+library(scales)
+library(rpart.plot) #for decision trees
+library(klaR) # Naive Bayes
+```
+
+### Data cleaning
+For example, there were some potential issue with the number format being recognized as data; data in the Gender column also needed cleaning as many people had typos and provided complex descriptions. After discussing tieh our mentor TA, and avoid misclassification and over-simplification, in case we need gender data in a visulization, we are only using Female(cis) and Male (cis).
+
+
+
+
+```{r, include=FALSE}
+
+survey[survey$no_employees=="6/25/2019" ] <- as.factor(6-25)
+survey[survey$no_employees=="1/5/2019" ] <- as.factor(1-5)
+```
+
+```{r, include=FALSE}
+diffgender <- unique(survey$Gender)
+```
+
+```{r, include=FALSE}
+#Clean gender
+#Male
+survey$Gender<-replace(survey$Gender,survey$Gender=="M","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="m","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="male","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Male ","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="maile","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Mail","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Man","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Mal","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Malr","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="msle","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Make","Male")
+
+
+#Female
+survey$Gender<-replace(survey$Gender,survey$Gender=="F","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="f","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="female","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Female ","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Femake","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Woman","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="woman","Female")
+
+#Cis
+#??partial match, do "fe" first for females, than "male" for males
+
+#Cis female
+survey$Gender<-replace(survey$Gender,survey$Gender=="Cis Female","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="cis-female/femme","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Female (cis)","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="femail","Female")
+survey$Gender<-replace(survey$Gender,survey$Gender=="","Female")
+
+#Cis male
+survey$Gender<-replace(survey$Gender,survey$Gender=="Cis Male","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="cis male","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Cis Man","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="Male (CIS)","Male")
+survey$Gender<-replace(survey$Gender,survey$Gender=="","Male")
+
+#Trans
+
+```
+
+```{r, include=FALSE}
+print(length(unique(survey$Gender)))
+diffgender <- unique(survey$Gender)
+diffgender
+```
+
+```{r, include=FALSE}
+# Clean age
+survey %>% filter(Age<15 | Age > 80)%>% head
+survey <- survey %>% mutate(Age = replace(Age, Age>80, NA))
+survey <- survey %>% mutate(Age = replace(Age, Age<15, NA))
+survey %>% filter(Age<15 | Age > 80)
+```
+
+```{r, include=FALSE}
+summary(survey)
+```
+------
+
+
+### Significance: Why do we care about mental health? Why is it bad?
+
+##### *Variables discussed:*
+
+**work_interfere:** If you have a mental health condition, do you feel that it interferes with your work?
+
+
+
+#### Do the employees with a mental health condition feel its impacts their work? - Yes, most of them do!
+
+##### **Main result:** For those who have a mental health condition, there is noticable intereference with their work. The interference is significant especially if the person has sought treatment (which means it might be more serious).
+
+
+##### **Among everyone:**
+```{r}
+pie_all <- data.frame(table(survey$work_interfere))
+#this table() function automatically excludes (not counting) the NAs  
+ggplot(pie_all, aes(fill=Var1,x="",y=Freq))+
+  geom_bar(stat="identity")+
+  labs(x="",y="percentage of people",title="Does your mental health confition interfere with your work?")+
+  coord_polar("y", start=0)+
+  theme_void()+
+  geom_text(aes(label = percent(Freq/(sum(Freq)))), position = position_stack(vjust = 0.5)) +
+  theme(legend.title = element_blank())+
+  scale_fill_brewer(palette="BuPu")
+```
+
+
+
+##### **Among those who have sought treatment:**
+
+```{r}
+pie_treat <- data.frame(table(survey%>% filter(work_interfere!="NA" & treatment=="Yes")%>%dplyr::select(work_interfere)))
+ggplot(pie_treat, aes(fill=Var1,x="",y=Freq))+
+  geom_bar(stat="identity")+
+  labs(x="",y="percentage of people",title="Does your mental health confition interfere with your work?
+       (Given the person has sought treatment)")+
+  coord_polar("y", start=0)+
+  theme_void()+
+  geom_text(aes(label = percent(Freq/(sum(Freq)))), position = position_stack(vjust = 0.5)) +
+  theme(legend.title = element_blank())+
+  scale_fill_brewer(palette="BuPu")
+```
+
+##### **Compare** the work interference from mental health condition, **between those who have sought treatment and those who have not:**
+
+##### We can observe that people who have sought treatment are those who are more likely and more frequently affected by their mental health conditions (maybe it's because the conditions are interfering with their work, that led them to seek treatment).
+```{r}
+survey%>%
+  filter(work_interfere!="NA")%>%
+  mutate(work_interfere = factor(work_interfere, levels = c("Often", "Sometimes",  "Rarely", "Never")))%>%
+  ggplot(aes(fill=work_interfere,x=factor(treatment,levels=c("Yes","No")),y=1))+geom_bar(position="stack", stat="identity") +
+  labs(x="Have you sought mental health treatment?",y="Number of people",title="Does your mental health condition interfere with your work?")+
+  theme(legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_fill_brewer(palette="BuPu")
+```
+
+```{r}
+
+```
+
+
+
+-----
+
+
+
+
+### **Communicating the problem**: If you have a problem, say it out!
+
+People are often reluctant to talk about a mental health issue they might have. Why is this?
+Are they worried about facing consequences if the employer knows?
+If it's the employer that they are afraid of, are people more willing to talk to coworkers about it?
+Is it easier to speak of a physical health issue compared to mental health?
+Does the situation vary in companies of different sizes - do bigger companies do a better job in promoting conversations, or do they exert worse stress?
+
+##### Hypothesis we wrote down: Company size is related to employee's willingness to discuss a mental health issue. Bigger companies may have more competitive environments, people may be less likely to discuss their mental health situations and seek help. Smaller companieS may be more private and personal, where employees and employer or supervisors may know each other better and have more time to communicate.
+
+
+##### *Variables discussed:*
+
+**obs_consequence:** Have you heard of or observed negative consequences for coworkers with mental health conditions in your workplace?
+
+**mental_health_consequence:** Do you think that discussing a mental health issue with your employer would have negative consequences?
+
+**coworkers:** Would you be willing to discuss a mental health issue with your coworkers?
+
+**supervisor:** Would you be willing to discuss a mental health issue with your direct supervisor(s)?
+
+**mental_health_interview:** Would you bring up a mental health issue with a potential employer in an interview?
+
+**phys_health_interview:** Would you bring up a physical health issue with a potential employer in an interview?
+
+##### How does observation of negative consequences for coworkers with mental health conditions in workplace affect discussion of mental health conditions? The correlation may not be as tight as you think.
+
+Specifically, after observing negative consequences on coworkers, is an employee more afraid to discuss the issue with the employer?
+
+
+Surprisingly, it seems that **the expectation of negative consequence is not highly related to whether one has seen a coworker facing the situation**. **There is some relationship bettwen the two**, for example, those who said that they have observed coworkers facing consequences are more likely to expect that discussing mental health issue will lead to consequence than not; but some of them still believe it won't necessarily lead to negative result. Simiarly, for those who have not heard of or seen coworkers facing negative consequences, they are more likely to expect that discussing such issue will not bring a consequence; but many of them still expect some negative consequences - not seeing similar situations does not free everyone from the worries.
+
+The graph is color-coded to represent people from companies of different sizes. The distribution of colors seem relatively random and even, suggest that such mindset is common in people from companies of small to large sizes. Maybe the concerns stem from the inside, not just the employer and working environment.
+
+```{r}
+#survey%>% filter(treatment=="YES")
+ggplot(survey, aes(x=factor(obs_consequence,levels = c("Yes","No")),
+                   y=factor(mental_health_consequence, levels = c("Yes", "Maybe","No")), 
+                   col=factor(no_employees,levels=c("1-5","6-25","26-100","100-500","500-1000","More than 1000"))))+
+  geom_point(position="jitter")+
+  labs(title="Is seeing a coworker with mental health condition face consequence \nrelated to people's expectation that discussing such an issue leads \nto a similar consequence?",
+       x="Heard of/observed negative consequences for coworkers \nwith mental health conditions?", 
+       y="Discuss mental health issue --> consequence?",
+       col = "Company size \n(Number of employees)")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_color_brewer(palette="RdPu")
+
+```
+
+
+
+
+##### Why do people not talk to supervisors about mental health problems? Is it that they are afraid of negative consequences?
+
+We notice many people are inclined not to talk about mental health problems with their supervisors.
+
+The graph here shows that if an employee think discussing mental health issue with the supervisor is not likely leading to some negative consequence, they will be more willing to talk about it. Vice versa, if people expect the discussion to have negative impact, they are less likely to communicate the issue with supervisors.
+
+However, we can also observe that it's not just about expectation of negative consequence. It seems that people are reluctant to discuss mental health issues with others in general, whether it's a supervisor or a coworker.
+
+**We still can't observe a significant effect from the size of the companies.**
+
+```{r}
+ggplot(survey, aes(x=factor(mental_health_consequence,levels = c("Yes", "Maybe","No")),
+                   y=factor(supervisor,levels = c("Yes", "Some of them","No")),
+                   col=factor(survey$no_employees,levels=c("1-5","6-25","26-100","100-500","500-1000","More than 1000"))))+
+  geom_point(position="jitter")+
+  labs(x="Expectation of negative consequence",
+       y="Are you willing to discuss with supervisor(s)?",
+       title="Do people avoid talking to supervisors about mental health issues \nbecause they think it brings negative consequences?",
+       col = "Company size \n(Number of employees)")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_color_brewer(palette="RdPu")
+```
+
+##### Are people more willing to discuss mental health issues with coworkers compared to supervisors
+
+It seems like most people are unwilling to discuss mental health issues with supervisors in general, regardless if they think there will be a negative consequence. We are curious whether the communication is better with coworkers.
+
+##### Here, we are exploring if the willingness to discuss with coworkers is somewhat correlated with the willingness to discuss with supervisors.
+
+If there is a negative correlation, maybe people choose to discuss only with coworkers, and feel it's enough expressing their concerns to coworkers, and they don't bother talking about it to supervisors.
+
+If there is a positive relationship, maybe people are afraid that the coworkers will tell the supervisors, or they just don't like other people to know their mental health conditions in general.
+
+After making the plot below, we observe that **most people are willing to discuss with "some of" the coworkers**, which is quite understandable; in comparison they are **less likely to discuss with supervisors in general**. But we can see a general pattern, a positive correlation between the two: **People who are willing to discuss mental health issues with coworkers (who answered "Yes" and we assum they are open to discuss with all or at least most coworkers), are also likely to be willing to discuss it with supervisors**. Similarly, **people who are unwilling to discuss mental health issue with coworkers, are also likely unwilling to discuss it with supervisors**.
+
+```{r}
+ggplot(survey, aes(x=factor(coworkers,levels = c("Yes", "Some of them","No")),
+                   y=factor(supervisor,levels = c("Yes", "Some of them","No")),
+                   col=factor(survey$no_employees,levels=c("1-5","6-25","26-100","100-500","500-1000","More than 1000"))))+
+  geom_point(position="jitter")+
+  labs(x="Are you willing to discuss with coworker(s)?",
+       y="Are you willing to discuss with supervisor(s)?",
+       title="Are people more willing to discuss mental health issues \nwith coworkers compared to supervisors?",
+       col = "Company size \n(Number of employees)")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_color_brewer(palette="RdPu")
+```
+
+
+##### Is it just mental health conditions that people don't want to talk about? Or is discussing physical health conditions also facing barriers?
+
+Physical health is also important to ensure life quality and working efficiency. Here, we compare people's willingness to bring up physical vs mental health issues before employment (during interviews) and during employment, with supervisors.
+
+We observe from below: It seems that **some people just don't want to discuss any health issue they have with the supervisors (or potential employers), whether it's physical or mental. It also seems to be independent of company sizes.**
+
+Overall, we should advocate for a working environment in these tech companies that empowers people to better communicate their health issues, whether it's physical and mental. Both employers and employees should better recognize the issues as solvable challenges, rather than barrier to work.
+
+```{r}
+ggplot(survey, aes(x=factor(phys_health_interview,levels = c("No", "Maybe","Yes")),
+                   y=factor(mental_health_interview,levels = c("No", "Maybe","Yes")),
+                   col=factor(survey$no_employees,levels=c("1-5","6-25","26-100","100-500","500-1000","More than 1000"))))+
+  geom_point(position="jitter")+
+  labs(title="Would you bring up a physical/mental issue during interview \nwith a potential employer?",
+       x="Bring up a PHYSICAL health issue?",
+       y="Bring up MENTAL health issue?",
+       col = "Company size \n(Number of employees)")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_color_brewer(palette="RdPu")
+```
+
+
+```{r}
+ggplot(survey, aes(x=factor(phys_health_consequence,levels = c("Yes", "Maybe","No")),
+                   y=factor(mental_health_consequence,levels = c("Yes", "Maybe","No")),
+                   col=factor(survey$no_employees,levels=c("1-5","6-25","26-100","100-500","500-1000","More than 1000"))))+
+  geom_point(position="jitter")+
+  labs(title="Do you expect discussing a physical/mental issue with your \nemployer to have negative consequnces?",
+       x="PHYSICAL health issue  --> negative consequences?",
+       y="MENTAL health issue --> negative consequences?",
+       col = "Company size \n(Number of employees)")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_color_brewer(palette="RdPu")
+```
+
+
+
+
+
+------
+
+
+### **Size of company**: Do bigger companies to better at offering mental health care benefits and resources?
+### **Hypothesis: Bigger companies provide better mental health care benefits/resources**
+
+
+##### **Variables discussed**: the ones that are relatively directly related to what the employer provide in terms of mental health benefits/care.
+
+*benefits*: Does your employer provide mental health benefits?
+
+*care_options*: Do you know the options for mental health care your employer provides?
+
+*wellness_program*: Has your employer ever discussed mental health as part of an employee wellness program?
+
+*seek_help*: Does your employer provide resources to learn more about mental health issues and how to seek help?
+
+*anonymity*: Is your anonymity protected if you choose to take advantage of mental health or substance abuse treatment resources?
+
+
+------
+
+##### When viewing some of the graphs, we advise that you see "Don't know" as part of "No", as it suggest the company might have failed to inform the employees about the options.
+
+##### Are larger companies more likely to provide mental health benefits?
+```{r}
+survey%>%
+  mutate(no_employees = factor(no_employees, levels = c("1-5","6-25","26-100","100-500","500-1000","More than 1000")))%>%
+  ggplot(aes(fill=benefits,x=no_employees,y=1))+geom_bar(position="stack", stat="identity") +
+  labs(x="Company size (Number of employees)", y="number of people",title="Does your company provide mental health benefits?")+
+  theme(legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_fill_brewer(palette="GnBu")
+```
+
+##### Normalize the barplot:
+```{r}
+survey%>%
+  mutate(no_employees = factor(no_employees, levels = c("1-5","6-25","26-100","100-500","500-1000","More than 1000")))%>%
+  ggplot(aes(fill=benefits,x=no_employees,y=1))+geom_bar(position="fill", stat="identity") +
+  labs(x="Company size (Number of employees)", y="percentage of people",title="Does your company provide mental health benefits?")+
+  theme(legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_fill_brewer(palette="GnBu")
+```
+
+##### Apart from the benefits, how well do people know the options for mental health care provided by their employers?
+##### While bigger companies seem to do better in providing benefits, they don't necessarily do a better job in informing employees about the options.
+```{r}
+survey%>%
+  mutate(no_employees = factor(no_employees, levels = c("1-5","6-25","26-100","100-500","500-1000","More than 1000")))%>%
+  ggplot(aes(fill=factor(care_options,levels=c("Not sure","No","Yes")),x=no_employees,y=1))+
+  geom_bar(position="fill", stat="identity") +
+  labs(x="Company size (Number of employees)",
+       y="percentage of people",
+       title="Do you know the options for mental health care your employer provides?")+
+  theme(legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_fill_brewer(palette="GnBu")
+```
+
+##### We then examined whether the companies provide mental health care as part of their employee wellness program.
+##### It seems that in general, larger companies are more likely to introduce mental health benefits as part of a wellness program, which might provide more systematic service.
+```{r}
+survey%>%
+  mutate(no_employees = factor(no_employees, levels = c("1-5","6-25","26-100","100-500","500-1000","More than 1000")))%>%
+  ggplot(aes(fill=wellness_program,x=no_employees,y=1))+
+  geom_bar(position="fill", stat="identity") +
+  labs(x="Company size (Number of employees)",
+       y="percentage of people",
+       title="Has your employer discussed mental health as part of an \nemployee wellness program?")+
+  theme(legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_fill_brewer(palette="GnBu")
+```
+
+
+##### seek_help: This question asks if the employer provide resources to learn more about mental health issues and how to seek help.
+##### Again, there is a general trend that larger companies are more likely to provide resources where employees can acquire more knowledge about their mental health concerns and how to find the help they need
+
+```{r}
+survey%>%
+  mutate(no_employees = factor(no_employees, levels = c("1-5","6-25","26-100","100-500","500-1000","More than 1000")))%>%
+  ggplot(aes(fill=seek_help,x=no_employees,y=1))+
+  geom_bar(position="fill", stat="identity") +
+  labs(x="Company size (Number of employees)",
+       y="percentage of people",
+       title="Does your employer provide resources to learn more about \nmental health issues and how to seek help?")+
+  theme(legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_fill_brewer(palette="GnBu")
+```
+
+
+
+
+##### Anonymity:Is your anonymity protected when you seek help from mental health or substance abuse treatment resources?
+##### Privacy is an important right we should respect, especially when it comes to physical and mental health issues, which might lead to potential disadvantages. Also, people with mental health conditions may be more sensitive about their privacy in their first place.
+##### Here, it seems that the level of protection of anonymity is similar across companies of different sizes. This may not be all dependent on the companies - it often relates to what services they collaborate with. Whether anonymity is well protected often has to rely on the care provider as well.
+##### Also, it is difficult to know for if your confidentials were leaked as they do not always appear "symptomatic"
+```{r}
+survey%>%
+  mutate(no_employees = factor(no_employees, levels = c("1-5","6-25","26-100","100-500","500-1000","More than 1000")))%>%
+  ggplot(aes(fill=anonymity,x=no_employees,y=1))+
+  geom_bar(position="fill", stat="identity") +
+  labs(x="Company size (Number of employees)",
+       y="percentage of people",
+       title="Is your anonymity protected if you choose to take advantage of mental health \nor substance abuse treatment resources?")+
+  theme(legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_fill_brewer(palette="GnBu")
+```
+
+
+#### Modeling: using mental health benefit factors to predict company size
+
+##### From the visualizaions above we can see that company size is an important factor, which correlates with many aspects of mental health benefits. To confirm that, we made a decision tree, using mental health benefit features to predict the size of the company.
+
+##### Again, the variables we are using here are:
+    *benefits*: Does your employer provide mental health benefits?
+    *care_options*: Do you know the options for mental health care your employer provides?
+    *wellness_program*: Has your employer ever discussed mental health as part of an employee wellness program?
+    *seek_help*: Does your employer provide resources to learn more about mental health issues and how to seek help?
+    *anonymity*: Is your anonymity protected if you choose to take advantage of mental health or substance abuse treatment resources?
+
+##### Make dataset for training and testing
+```{r}
+library(class) #To make a test and train dataset, shuffle and split [survey]
+shuffled <- sample_n(survey, nrow(survey))
+split <- 0.8 * nrow(shuffled)
+training <- shuffled[1 : split, ]
+test <- shuffled[(split + 1):nrow(shuffled), ]
+```
+
+
+##### Decision Tree
+```{r}
+library(rpart.plot)
+```
+
+
+##### Build the tree
+```{r}
+tree <- rpart(no_employees ~ benefits+
+                care_options+
+                wellness_program+
+                seek_help+
+                anonymity,
+              data = training, method = 'class')
+rpart.plot(tree)
+```
+
+##### Test accuracy
+The accuracy turns out to be merely 0.414. 
+```{r}
+predict <- predict(tree, test, type = "class")
+mean(predict == test$no_employees)
+```
+
+
+##### Naive Bayes
+Similarly we can build a Naive Bayes model. However, the accuracy does not go above 0.4. Still not ideal.
+```{r}
+my_nb <- NaiveBayes(no_employees ~ benefits+
+                care_options+
+                wellness_program+
+                seek_help+
+                anonymity, data = training)
+predict <- predict(my_nb, test)$class
+mean(predict == test$no_employees) # Testing accuracy
+
+```
+
+##### With these 2 models, it shows we cannot use mental health care features to predict the size of a company. In many circumstances, large companies do a poor job in providing mental health benefits where smaller companies do a better job.
+
+##### KNN model
+We also considered building a KNN model. However, it requires converting the data (which is mostly categorical) to numeric. "Yes" and "No" are relatively easy to quantify - maybe as 1 and 0; but answeres like "Don't know" and "Not sure" cannot be simply seen as 0.5, since the person "not sure" of something might be "70% sure" or "10% sure", but if we ignore these answers we would omit too much data. As a result, we did not make a KNN model.
+
+
+
+
+
+
+##### In general, how difficult is it to take a leave for mental health reasons? Is it easier in bigger companies?
+
+Our hypothesis was that it would be more difficult to take a medical leave from a larger company because the environment is more competitive.
+
+It turns out no! There is no strong pattern in terms of how difficult it is to take a leave in relation to company size.
+
+A general pattern is that it is relatively more difficult to leave in smaller companies, maybe because each position is more indispensible. Whereas in the bigger companies, the employers can manage temporary substitutes more easily and are not as annoyed by one person taking a leave.
+
+```{r}
+survey%>%
+  mutate(no_employees = factor(no_employees, levels = c("1-5","6-25","26-100","100-500","500-1000","More than 1000")))%>%
+  ggplot(aes(fill=factor(leave, levels=c("Don't know", "Very difficult", "Somewhat difficult", "Somewhat easy","Very easy")),x=no_employees,y=1))+geom_bar(position="fill", stat="identity") +
+  labs(x="Company size (Number of employees)",
+       y="percentage of people",
+       title="How difficult is it to take a medical leave for mental Health reasons? \n(in different sized companies)",
+       fill="Difficulty of taking leave \nfor a mental health condition")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_fill_brewer(palette="BuGn")
+```
+
+
+
+-----
+
+
+### **Self-employment**: Self-employment sounds great! You can make every decision for yourself. But is that so?
+
+We initially hypothesized that self-employed people might know the company-provided benefits better, and find it easier to discuss mental health issues with people they work with. But is that so?
+
+
+
+##### Does self-employment affect how easy it is to take a leave? Not significantly.
+
+It seems that self-employed people face a similar level of difficulty to ask for a leave for mental health reasons - while as the boss you  can decide for yourself, you are also more relied upon by the company, or feel a stronger obligation to stay.
+
+```{r}
+survey%>%
+  filter(self_employed != "NA")%>%
+  ggplot(aes(fill=factor(leave, levels=c("Don't know", "Very difficult", "Somewhat difficult", "Somewhat easy","Very easy")),x=self_employed,y=1))+geom_bar(position="fill", stat="identity") +
+  labs(x="Self-employed?",
+       y="percentage of people",
+       title="Is it easier to take a leave if you are self-employed?",
+       fill="Difficulty of taking leave \nfor a mental health condition")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_fill_brewer(palette="BuGn")
+```
+
+
+Then, exclude “Don't know" to avoid influence of those who have not necessarily tried to take leaves. We see the level of difficulty is even more similar. Self-employment doesn't necessarily mean better accomodation for mental health needs!
+```{r}
+survey%>%
+  filter(self_employed != "NA"& leave != "Don't know")%>%
+  ggplot(aes(fill=factor(leave, levels=c("Very difficult", "Somewhat difficult", "Somewhat easy","Very easy")),x=self_employed,y=1))+geom_bar(position="fill", stat="identity") +
+  labs(x="Self-employed?",
+       y="percentage of people",
+       title="Is it easier to take a medical leave if you are self-employed?",
+       fill="Difficulty of taking leave \nfor a mental health condition")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_fill_brewer(palette="BuGn")
+```
+
+
+
+
+##### Self-employed people in companies of different sizes: Are people managing larger companies more likely to have mental health conditions and seek treatment for it?
+
+The survey did not directly ask whether the person actually has a mental health condition. Instead, it only asked if the person has sought treatment for a mental health condition.
+
+An easy assumption would be that people managing bigger companies face more stress and are more likely to have had some mental health treatment.
+
+Compiling data of self-employment, company size, and whether one has sought treatment, we have this visualizations below:
+
+We can see that there is no significant correlation bettwen how big the company of the self-employed person is, and likeklihood of having sought mental health treatment. Maybe these people are able to run large companies partly because they are good at managing stress and mindsets and are no more likely to have mental health issues or need treatment.
+
+However, the number of self-employed people in this dataset is relatively few, and the data may not be representative for the whole industry.
+
+```{r}
+ggplot(survey%>%filter(self_employed=="Yes"),
+       aes(x=factor(no_employees, levels=c("1-5","6-25","26-100","100-500","500-1000","More than 1000")), y=treatment,col=treatment))+
+  geom_point(position="jitter")+
+  labs(x="Company size (Number of employees)",
+       y="Ever sought mental health treatment?",
+       title="Does company size and self-employment affect the likelihood of \nsoughting treatment?")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_fill_brewer(palette="BuGn")
+```
+
+
+##### Do self-employed people know the mental health benefits and options of their companies better than the non-self-employed people?
+
+
+##### benefits
+Surprisingly, self-employed people don't seems to know better whether their companies offer mental health benefits. Or maybe they can't tell if something they offer can be defined as a benefit?
+
+```{r}
+survey%>%filter(self_employed!="NA")%>%
+  mutate(no_employees = factor(no_employees, levels = c("1-5","6-25","26-100","100-500","500-1000","More than 1000")))%>%
+  ggplot(aes(fill=benefits,x=self_employed,y=1))+
+  geom_bar(position="fill", stat="identity") +
+  facet_grid(~ no_employees,switch = "x")+
+  labs(x="Self employed?
+       Company size (Number of employees)", 
+       y="percentage of people",
+       title="Does your company provide mental health benefits?")+
+  theme(legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_fill_brewer(palette="GnBu")
+```
+
+##### care options
+
+Again, rather surprisingly, self-employed people don't seems to know better about the mental health care options their companies offer.
+```{r}
+survey%>%filter(self_employed!="NA")%>%
+  mutate(no_employees = factor(no_employees, levels = c("1-5","6-25","26-100","100-500","500-1000","More than 1000")))%>%
+  ggplot(aes(fill=factor(care_options,levels=c("Not sure","No","Yes")),x=self_employed,y=1))+
+  geom_bar(position="fill", stat="identity") +
+  facet_grid(~ no_employees,switch = "x")+
+  labs(x="Self-employed?
+       Company size (Number of employees)",
+       y="percentage of people",
+       title="Do you know the options for mental health care your employer provides?")+
+  theme(legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_fill_brewer(palette="GnBu")
+```
+
+
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+##### (Take into account family history)
+There is some weak correlation between family history of mental health problem and whether the individual has seeked treatment. However this is not a significant relationship, so most of the difference can be attributed to the other factors.
+
+This graph is not meant for further analysis, just showing that we do realize family history can play a role, but also that its not a significant determinant in this dataset.
+```{r}
+ggplot(survey, aes(x=family_history, y=treatment))+geom_point(position="jitter")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "grey"))
+```
+
+
+
+
+------
+
+
+### **Geographical differences**: How do company-provided mental health benefits vary between countries and within the US? 
+
+##### Company benefit in a US state map
+
+Here, we create a variable "benefitratio", which is the ratio by which people answer "Yes" to whether your company offers mental health benefits, among all the people that answer the question. The data is grouped by "state". We then made a map color-coded to show which states have the highest/lowest "benefitratio".
+
+```{r}
+library(maps)
+library(ggplot2)
+library(usmap)
+
+statebenefits <- survey %>% dplyr::select(state, benefits) %>% na.omit()
+states <- unique (statebenefits$state)
+benefitratio <- c()
+```
+
+```{r}
+for (i in 1:length(states)){
+  totalstates <- nrow(statebenefits %>% filter(state==states[i]))
+  totalyes <- nrow(statebenefits %>% filter(state==states[i] & benefits =="Yes"))
+  newratio <- totalyes/totalstates
+  benefitratio <- append(benefitratio, newratio)
+}
+states <- data.frame(states)
+benefitratio <- data.frame(benefitratio)
+states <- cbind(states, benefitratio)
+states <- states %>% 
+  rename(state=states)
+```
+
+Benefit ratio: "Does your company provide mental health benefits?"
+
+```{r}
+plot_usmap(data = states, values = "benefitratio") + 
+  scale_fill_continuous(name = "benefit ratio", low="white", high="darkred",breaks = c(0.0,0.2,0.4,0.6,0.8,1.0),labels =  c(0.0,0.2,0.4,0.6,0.8,1.0)) + 
+  theme(legend.position = "right") +
+  labs(title="'What proportion of companies provide mental health benefits?' by state
+       grey regions means no data collected")
+```
+
+##### Noticeably, benefit ratio is highest in LA, NJ, and MA. We have 1 person from LA, 6 from NJ, and 20 from MA included in the survey (not a huge sample size)
+```{r}
+nrow(statebenefits %>% filter(state=="LA"))
+nrow(statebenefits %>% filter(state=="NJ"))
+nrow(statebenefits %>% filter(state=="MA"))
+```
+
+
+
+
+
+##### Across the world
+
+First, we do some exploratory analysis, showing how people from each country answered the "benefit" question.
+
+```{r}
+survey%>%filter(self_employed!="NA")%>%
+  mutate(no_employees = factor(no_employees, levels = c("1-5","6-25","26-100","100-500","500-1000","More than 1000")))%>%
+  ggplot(aes(fill=benefits,
+             x=Country,y=1))+
+  geom_bar(position="fill", stat="identity") +
+  labs(x="Country", 
+       y="percentage of people",
+       title="Does your company provide mental health benefits?")+
+  theme(legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "grey"))+
+  scale_fill_brewer(palette="GnBu")
+```
+
+##### We can see there are too many countries for us to read the graph very well. Therefore, the next step is to also represent it in a map!
+
+```{r}
+countrybenefits <- survey %>% dplyr::select(Country, benefits) %>% na.omit()
+countries <- unique (countrybenefits$Country)
+benefitratio2 <- c()
+```
+
+```{r}
+for (i in 1:length(countries)){
+  totalcountries <- nrow(countrybenefits %>% filter(Country==countries[i]))
+  totalyes <- nrow(countrybenefits %>% filter(Country==countries[i] & benefits =="Yes"))
+  newratio <- totalyes/totalcountries
+  benefitratio2 <- append(benefitratio2, newratio)
+}
+```
+
+```{r}
+countries <- data.frame(countries)
+benefitratio2 <- data.frame(benefitratio2)
+countries <- countries %>% 
+  rename(country=countries)
+countries <- cbind(countries, benefitratio2)
+```
+
+
+```{r}
+library(rworldmap)
+```
+
+```{r}
+datamap <- joinCountryData2Map(countries, joinCode = "NAME",
+  nameJoinColumn = "country")
+```
+
+```{r}
+mapCountryData(datamap,
+               nameColumnToPlot="benefitratio2",
+               catMethod = "numerical",
+               missingCountryCol = gray(.8),
+               colourPalette=c("pink","darkblue"),
+               mapTitle="Benefit ratio by country",
+               addLegend = TRUE)
+```
+
+##### Observation: the ratio of which companies provide mental health benefits vary a lot across countries. Canada and some Northern European countries seem to the countries where companies are most likely to provide mental health benefits. Countries in Latin America, Africa, and parts of Asia and Europe are not doing as a good job in providing mental health benefits.
+
+##### But still, keep in mind that our data set is relatively small and limited (it's about 1200 people, but they represent about 50 countries, which means not many people, and no many companies from each country).
+
+------
+
+
+
+### **Going Back to General Hypotheses** - How valid were they? What did we learn?
+
+##### **1.** Company size is related to employee's willingness to discuss a mental health issue. Bigger companies may have more competitive environments, people may be less likely to discuss their mental health situations and seek help. Smaller companieS may be more private and personal, where employees and employer or supervisors may know each other better and have more time to communicate.
+
+Not necessarily. We notice that in companies of various sizes, people generally find it difficult to discuss their mental health issues with supervisors.
+
+Sometimes it may be partly attributed to people's worry that such discussion will lead to negative consequences, or that they have seen a coworker with mental health conditions face some consequences.
+
+However, people who don't worry about, or haven't observed these negative consequences, are still usually inclined not to discuss their mental health issues. In our understanding, it may be because as a society we often recognize mental health conditions as long-term, unsolvable barrier to work, and revealing our mental health issues to others will lead to disadvantages at work. Additionally, we also found that many people in the tech industry, are as unwilling to discuss their physical health issues as the mental health issues. We really should advocate for an environment that's more open to discussion around health conditions, and more inclusive to those who have a problem that needs medical intereference.
+
+
+##### **2.** Bigger companies provide better mental health care benefits/resources
+
+Yes! In general, we found out that companies of larger sizes do better at providing benefits, including the benefits as part of their wellness program, and providing resources to learn more about mental health issues and how to seek help.
+
+However, larger companies do not have any outstanding performance in terms of: informing employees of the care options, and protecting anonymity when an employee seeks mental health or substance abuse treatment resources.
+
+
+##### **3.** Self-employment is a factor influcing a person's access to mental health care provided by the employer. Those who are self-employed might know the company-provided benefits better, and find it easier to discuss mental health issues with people they work with.
+
+Not necessarily. We found out to our surprise that the self-employed people often do not know if their companies provide mental health benefits and the specific options, just like regular employees. It is as difficult for them to take medical leaves for mental health conditions, as it is for regular employees.
+
+
+
+##### **4.** We expect some geographical difference among mental health care benefits. Different countries/states have different legislations regarding how companies should handle employee's mental health conditions.
+
+Yes, we have demonstrated how mental health benefits differ across countris and states. However, we cannot define any clear grographical pattern (e.g. companies in East coast states and West coast states don't differ significatnly; neigher do companies in European and Asian countries). Also, we do not have a dataset big enough to be truly representatiive

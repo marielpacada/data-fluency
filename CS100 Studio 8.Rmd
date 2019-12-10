@@ -1,0 +1,48 @@
+---
+title: "CS100 Studio 8"
+author: "Mariel Pacada"
+date: "11/5/2019"
+output: html_document
+---
+
+### Part 1A
+```{r plot}
+x <- runif(50, 0, 100)
+y <- runif(50, 0, 100)
+
+plot(x, y)
+cor(x, y)
+```
+There seems to be no correlation between x and y. The correlation coefficient confirms this.
+
+```{r regression}
+my_model <- lm(y ~ x)
+plot(x, y) + abline(my_model)
+summary(my_model)
+plot(my_model, which = 1)
+```
+The slope of the linear model is -0.013, which is insignificant because its p-value is almost 1. The R-squared value is 0.0002, which means that the model does not explain the data very well.
+
+(Note: The slope, p-e, and R-squared values may be different at the time of knit because x and y are randomly generated. Nonetheless, the numbers should still be similar.)
+
+### Part 1B
+```{r plot2}
+x <- runif(50, 0, 100)
+e <- runif(50, -10, 100)
+y <- 2 + 4 * x + e
+
+my_model <- lm(y ~ x)
+
+cor(y, x)
+plot(x, y)
+lm(y ~ x)
+```
+The scatterplot for x and y seems to indicate that the correlation between the two are close to positive 1. The slope and intercept predicted by the linear model are similar to the true values. 
+
+```{r regression2}
+plot(x, y) + abline(my_model, col = "red") + abline(a = 2, b = 4, col = "blue") + legend("topleft", legend = c("Best Fit", "True Model"), col = c("red", "blue"), lty = 1)
+
+plot(lm(y ~ x), which = 1)
+````
+
+

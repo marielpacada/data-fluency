@@ -1,0 +1,33 @@
+---
+title: "CS100 Homework 4 Part 2"
+author: "Mariel Pacada"
+date: "11/26/2019"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+library(dplyr)
+
+movies <- read.csv("http://cs.brown.edu/courses/cs100/homework/data/4/movies.csv", stringsAsFactors = FALSE)
+strsplit(movies$genres, "[|]")
+movies[duplicated(movies$title), ]
+match("War of the Worlds (2005)", movies$title)
+match("Hamlet (2000)", movies$title)
+movies <- movies[-c(7128, 7152), ]
+
+ratings <- read.csv("http://cs.brown.edu/courses/cs100/homework/data/4/ratings.csv")
+ratings <- ratings %>% filter(userId <= 20)
+```
+
+```{r matrix}
+mat <- matrix(0, 20, nrow(movies))
+colnames(mat) <- movies$title
+```
+
+```{r}
+for (i in 1:20) {
+  
+}
+
+```
+

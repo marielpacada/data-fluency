@@ -1,0 +1,110 @@
+---
+title: "CS100 Homework 3 Part 1"
+author: "Mariel Pacada"
+date: "11/6/2019"
+output: pdf_document
+---
+
+```{r setup, include = FALSE}
+monet <- read.csv("http://cs.brown.edu/courses/cs100/homework/data/3/monet.csv")
+library(janitor)
+library(ggplot2)
+library(dplyr)
+
+monet <- clean_names(monet, case = "snake")
+monet$signed <- as.factor(monet$signed)
+```
+
+### Part 1: Pricing Monet Paintings
+```{r scatterplots}
+pairs(monet)
+```
+Visually, we can see that price is most highly correlated with height and width. This is intuitive -- the bigger the painting in size, the more expensive one would expect it to be. Another pair of variables that are highly correlated are height and width. We confirm this by finding their correlation coefficients below. 
+
+```{r correlations}
+cor(monet$price, monet$height) #price and height
+cor(monet$price, monet$width) #price and width
+cor(monet$height, monet$width) # height and width
+```
+
+```{r mutate}
+monet <- monet %>% 
+           mutate(size = height * width)
+
+cor(monet$price, monet$size)
+```
+
+```{r transform-plot}
+plot(monet$size, monet$price) # did not transform
+plot(log(monet$size), monet$price)
+plot(monet$size, log(monet$price))
+plot(log(monet$size), log(monet$price)) # this seems the most appropriately transformed
+plot(sqrt(monet$size), monet$price)
+plot(monet$size, sqrt(monet$price))
+plot(sqrt(monet$size), sqrt(monet$price))
+plot(sqrt(monet$size), log(monet$price)) # this is another possible good transformation
+plot(log(monet$size), sqrt(monet$price))
+
+```
+
+```{r filter-small}
+small_paintings <- monet %>%
+                     filter(size <= 2500)
+
+plot(small_paintings$size, small_paintings$price) # did not transform
+plot(log(small_paintings$size), small_paintings$price)
+plot(small_paintings$size, log(small_paintings$price)) # this is a possible contender
+plot(log(small_paintings$size), log(small_paintings$price)) 
+plot(sqrt(small_paintings$size), small_paintings$price)
+plot(small_paintings$size, sqrt(small_paintings$price))
+plot(sqrt(small_paintings$size), sqrt(small_paintings$price))
+plot(sqrt(small_paintings$size), log(small_paintings$price)) # this seems the best transformation
+plot(log(small_paintings$size), sqrt(small_paintings$price))
+```
+
+```{r best-plot}
+x <- small_paintings$size
+y <- small_paintings$price
+a <- model$coefficients[1]
+b <- model$coefficients[2]
+
+model <- lm(log(y) ~ sqrt(x))
+plot(sqrt(x), log(y)) + abline(model, col = "red")
+curve(exp(a) + b * sqrt(x), col = "red", add = TRUE)
+
+plot(model, which = 1)
+summary(model)
+```
+The slope of the linear model is 0.13, which can be seen as significant because it has a p-value of magnitude -16. Moreover, the R-squared value is 0.31; this value indicates that the model could be a good explanation of the data.
+
+```{r signed}
+ggplot(small_paintings, aes(x = small_paintings$signed, y = small_paintings$price)) + geom_boxplot()
+
+avg_sign <- small_paintings %>%
+              select(signed, price) %>%
+              group_by(signed) %>%
+              summarize(avg.price = mean(price))
+
+avg_sign
+```
+Above is the boxplot for signed and unsigned paintings for of Monet. The mean price for unsigned paintings is 0.75 million dollars, while that for signed ones is about 3.3 million dollars. It does not seem like the two distributions come from the same one. The distribution for signed paintings have much more variance than the one for unsigned ones.
+
+```{r price-size}
+# not transformed
+qplot(data = small_paintings, x = size, y = price, color = signed)
+
+# transformed
+qplot(data = small_paintings, x = sqrt(size), y = log(price), color = signed)
+```
+
+
+```{r regression-plot}
+j <- my_model$coefficients[1]
+k <- my_model$coefficients[2]
+dummy <- my_model$coefficients[3]
+
+my_model <- lm(small_paintings$price ~ small_paintings$size + small_paintings$signed)
+summary(my_model)
+
+plot(x = sqrt(small_paintings$size), y = log(small_paintings$price), col = small_paintings$signed) + abline(my_model, col = "red") + abline(a = j, b = k, col = "blue")
+```

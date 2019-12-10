@@ -1,0 +1,193 @@
+---
+title: "CS100 Homework 3 Part 2"
+author: "Mariel Pacada"
+date: "11/19/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(class)
+library(rpart.plot) 
+library(klaR) 
+library(caret)
+library(corrplot)
+
+mcd <- read.csv("https://cs.brown.edu/courses/cs100/homework/data/3/mcdonalds.csv")
+mcd_train <- read.csv("https://cs.brown.edu/courses/cs100/homework/data/3/mcdonalds_train.csv")
+mcd_test <- read.csv("https://cs.brown.edu/courses/cs100/homework/data/3/mcdonalds_test.csv")
+```
+
+```{r}
+mcd_plot <- mcd %>% filter(Serving.Size < 4900) # exclude dasani water bottle (extreme outlier)
+
+ggplot(mcd_plot, aes(x = Category, y = Serving.Size)) + geom_boxplot()
+ggplot(mcd_plot, aes(x = Category, y = Calories)) + geom_boxplot()
+ggplot(mcd_plot, aes(x = Category, y = Calories.from.Fat)) + geom_boxplot()
+ggplot(mcd_plot, aes(x = Category, y = Total.Fat)) + geom_boxplot()
+ggplot(mcd_plot, aes(x = Category, y = Saturated.Fat)) + geom_boxplot()
+ggplot(mcd_plot, aes(x = Category, y = Trans.Fat)) + geom_boxplot()
+ggplot(mcd_plot, aes(x = Category, y = Cholesterol)) + geom_boxplot()
+ggplot(mcd_plot, aes(x = Category, y = Sodium)) + geom_boxplot()
+ggplot(mcd_plot, aes(x = Category, y = Carbohydrates)) + geom_boxplot()
+ggplot(mcd_plot, aes(x = Category, y = Dietary.Fiber)) + geom_boxplot()
+ggplot(mcd_plot, aes(x = Category, y = Sugars)) + geom_boxplot()
+ggplot(mcd_plot, aes(x = Category, y = Protein)) + geom_boxplot()
+ggplot(mcd_plot, aes(x = Category, y = Vitamin.A....Daily.Value.)) + geom_boxplot()
+ggplot(mcd_plot, aes(x = Category, y = Vitamin.C....Daily.Value.)) + geom_boxplot()
+ggplot(mcd_plot, aes(x = Category, y = Calcium....Daily.Value.)) + geom_boxplot()
+ggplot(mcd_plot, aes(x = Category, y = Iron....Daily.Value.)) + geom_boxplot()
+```
+
+```{r}
+mcd_cor <- mcd[, c(4:25)]
+mcd_cor <- as.matrix(mcd_cor)
+
+colnames(mcd_cor) <- c("size", "cal", "calfat", "tf", "tfdv", "sf", "sfdv", "transf", "ch", "chdv", "sod", "soddv", "crb", "crbdv", "df", "dfdv", "sug", "pr", "vadv", "vcdv", "cdv", "idv")
+
+mat <- cor(mcd_cor)
+round(mat, 3)
+```
+
+```{r}
+accuracy <- function(predictions) {
+  mean(predictions == mcd_test$Category)
+}
+``` 
+### k-NN Models
+
+#### 1-Feature Model
+```{r knn1}
+# Ensures same results each time the code is run
+set.seed(1)
+# Training data
+knn1_train <- mcd_train %>% dplyr::select(Serving.Size)
+# Testing data
+knn1_test <- mcd_test %>% dplyr::select(Serving.Size)
+# Label
+knn1_label <- mcd_train$Category
+# Predictions
+knn1_class <- knn(knn1_train, knn1_test, knn1_label, k = 3)
+summary(knn1_class)
+# Test accuracy
+accuracy(knn1_class)
+```
+
+#### 2-Feature Model
+```{r}
+set.seed(1)
+knn2_train <- mcd_train %>% dplyr::select(Serving.Size, Saturated.Fat)
+knn2_test <- mcd_test %>% dplyr::select(Serving.Size, Saturated.Fat)
+knn2_label <- mcd_train$Category
+knn2_class <- knn(knn2_train, knn2_test, knn2_label, k = 3)
+
+summary(knn2_class)
+accuracy(knn2_class)
+```
+
+#### 3-Feature Model
+```{r}
+set.seed(1)
+knn3_train <- mcd_train %>% dplyr::select(Serving.Size, Saturated.Fat, Sugars)
+knn3_test <- mcd_test %>% dplyr::select(Serving.Size, Saturated.Fat, Sugars)
+knn3_label <- mcd_train$Category
+knn3_class <- knn(knn3_train, knn3_test, knn3_label, k = 1)
+
+summary(knn3_class)
+accuracy(knn3_class)
+```
+
+#### 4-Feature Model
+```{r}
+set.seed(1)
+knn4_train <- mcd_train %>% dplyr::select(Serving.Size, Saturated.Fat, Sugars, Iron....Daily.Value.)
+knn4_test <- mcd_test %>% dplyr::select(Serving.Size, Saturated.Fat, Sugars, Iron....Daily.Value.)
+knn4_label <- mcd_train$Category
+knn4_class <- knn(knn4_train, knn4_test, knn4_label, k = 1)
+
+summary(knn4_class)
+accuracy(knn4_class)
+```
+
+### Decision Trees
+
+#### 1-Feature Model 
+```{r}
+set.seed(1)
+tree1 <- rpart(Category ~ Serving.Size, data = mcd_train, method = "class")
+rpart.plot(tree1)
+
+tree_predict1 <- predict(tree1, mcd_test, type = 'class')
+accuracy(predict1)
+```
+
+#### 2-Feature Model 
+```{r}
+set.seed(1)
+tree2 <- rpart(Category ~ Trans.Fat + Sugars, data = mcd_train, method = "class", control = rpart.control(maxdepth = 4))
+rpart.plot(tree2)
+
+tree_predict2 <- predict(tree2, mcd_test, type = 'class')
+accuracy(predict2)
+```
+
+#### 3-Feature Model
+```{r}
+set.seed(1)
+tree3 <- rpart(Category ~ Serving.Size + Sugars + Sodium, data = mcd_train, method = "class", control = rpart.control(maxdepth = 4, minsplit = 10))
+rpart.plot(tree3, box.palette = 0)
+
+tree_predict3 <- predict(tree3, mcd_test, type = 'class')
+accuracy(predict3)
+```
+
+#### 4-Feature Model
+```{r}
+set.seed(1)
+tree4 <- rpart(Category ~ Serving.Size + Sugars + Calcium....Daily.Value. + Calories, data = mcd_train, method = "class", control = rpart.control(maxdepth = 4, minsplit = 20))
+rpart.plot(tree4, box.palette = 0)
+
+
+tree_predict4 <- predict(tree4, mcd_test, type = 'class')
+accuracy(predict4)
+```
+
+### Naive Bayes
+
+#### 1-Feature Model 
+```{r}
+nb1 <- NaiveBayes(Category ~ Serving.Size, data = mcd_train)
+nb_predict1 <- predict(nb1, mcd_test)$class
+accuracy(nb_predict1)
+```
+
+#### 2-Feature Model
+```{r}
+nb2 <- NaiveBayes(Category ~ Serving.Size + Cholesterol, data = mcd_train)
+nb_predict2 <- predict(nb2, mcd_test)$class
+accuracy(nb_predict2)
+```
+
+#### 3-Feature Model
+```{r, warning = FALSE}
+nb3 <- NaiveBayes(Category ~ Serving.Size + Cholesterol + Protein, data = mcd_train)
+nb_predict3 <- predict(nb3, mcd_test)$class
+accuracy(nb_predict3)
+```
+
+#### 4-Feature Model
+```{r, warning = FALSE}
+nb4 <- NaiveBayes(Category ~ Serving.Size + Sugars + Protein + Saturated.Fat, data = mcd_train)
+nb_predict4 <- predict(nb4, mcd_test)$class
+accuracy(nb_predict4)
+```
+
+### Own
+```{r, warning = FALSE}
+nb5 <- NaiveBayes(Category ~ Serving.Size + Sugars + Protein + Saturated.Fat + Calories, data = mcd_train)
+nb_predict5 <- predict(nb5, mcd_test)$class
+accuracy(nb_predict5)
+
+
+table(nb_predict5)
+```
